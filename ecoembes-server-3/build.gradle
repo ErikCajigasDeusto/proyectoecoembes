@@ -1,0 +1,33 @@
+// Initially generated with ChatGPT 4o and adapted using GitHub Copilot.
+// Reviewed and updated with assistance from Claude Opus 4.8 (July 2026)
+// and ChatGPT-6.1 Sol (October 2026).
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.1.2'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'es.deusto.sd.auctions'
+version = '1.0'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// Spring Boot Starter Web for building web applications
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// SpringDoc OpenAPI UI Dependency this is needed to use Swagger annotations
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1'
+
+	// Latest stable Commons Codec; explicitly overrides Spring Boot's managed version.
+    implementation 'commons-codec:commons-codec:1.22.1'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
