@@ -3,7 +3,7 @@
  * Reviewed and updated with assistance from Claude Opus 4.8 (July 2026)
  * and ChatGPT-6.1 Sol (October 2026).
  */
-package es.deusto.sd.auctions.facade;
+package es.deusto.sd.ecoembes.facade;
 
 import java.util.Optional;
 
@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import es.deusto.sd.auctions.dto.CredentialsDTO;
-import es.deusto.sd.auctions.service.AuthService;
+import es.deusto.sd.ecoembes.dto.CredentialsDTO;
+import es.deusto.sd.ecoembes.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;

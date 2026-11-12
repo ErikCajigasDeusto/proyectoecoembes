@@ -2,7 +2,7 @@
  * Entirely generated with ChatGPT-6.1 in September and October 2026.
  * Reviewed and updated with assistance from ChatGPT-6.1 Sol (October 2026).
  */
-package es.deusto.sd.auctions;
+package es.deusto.sd.ecoembes;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,7 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class AuctionsApplicationTest {
+class EcoembesApplicationTest {
 
     @Value("${local.server.port}")
     private int port;

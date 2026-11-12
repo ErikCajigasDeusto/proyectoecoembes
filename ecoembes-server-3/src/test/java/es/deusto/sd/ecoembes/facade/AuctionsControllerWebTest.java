@@ -2,7 +2,7 @@
  * Entirely generated with ChatGPT-6.1 in September and October 2026.
  * Reviewed and updated with assistance from ChatGPT-6.1 Sol (October 2026).
  */
-package es.deusto.sd.auctions.facade;
+package es.deusto.sd.ecoembes.facade;
 
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -23,11 +23,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import es.deusto.sd.auctions.entity.Category;
-import es.deusto.sd.auctions.entity.User;
-import es.deusto.sd.auctions.service.AuctionsService;
-import es.deusto.sd.auctions.service.AuthService;
-import es.deusto.sd.auctions.service.CurrencyService;
+import es.deusto.sd.ecoembes.entity.Category;
+import es.deusto.sd.ecoembes.entity.User;
+import es.deusto.sd.ecoembes.facade.AuctionsController;
+import es.deusto.sd.ecoembes.service.AuctionsService;
+import es.deusto.sd.ecoembes.service.AuthService;
+import es.deusto.sd.ecoembes.service.CurrencyService;
 
 @ExtendWith(MockitoExtension.class)
 class AuctionsControllerWebTest {

@@ -2,7 +2,7 @@
  * Entirely generated with ChatGPT-6.1 in September and October 2026.
  * Reviewed and updated with assistance from ChatGPT-6.1 Sol (October 2026).
  */
-package es.deusto.sd.auctions.service;
+package es.deusto.sd.ecoembes.service;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -13,7 +13,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import es.deusto.sd.auctions.entity.User;
+import es.deusto.sd.ecoembes.entity.User;
+import es.deusto.sd.ecoembes.service.AuthService;
 
 class AuthServiceTest {
 

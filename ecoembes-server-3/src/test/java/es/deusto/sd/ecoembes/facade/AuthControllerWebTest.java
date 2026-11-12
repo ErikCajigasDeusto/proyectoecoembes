@@ -2,7 +2,7 @@
  * Entirely generated with ChatGPT-6.1 in September and October 2026.
  * Reviewed and updated with assistance from ChatGPT-6.1 Sol (October 2026).
  */
-package es.deusto.sd.auctions.facade;
+package es.deusto.sd.ecoembes.facade;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -21,7 +21,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import es.deusto.sd.auctions.service.AuthService;
+import es.deusto.sd.ecoembes.facade.AuthController;
+import es.deusto.sd.ecoembes.service.AuthService;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerWebTest {

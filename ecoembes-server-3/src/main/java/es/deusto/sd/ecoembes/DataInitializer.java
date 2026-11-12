@@ -3,7 +3,7 @@
  * Reviewed and updated with assistance from Claude Opus 4.8 (July 2026)
  * and ChatGPT-6.1 Sol (October 2026).
  */
-package es.deusto.sd.auctions;
+package es.deusto.sd.ecoembes;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -14,11 +14,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import es.deusto.sd.auctions.entity.Article;
-import es.deusto.sd.auctions.entity.Category;
-import es.deusto.sd.auctions.entity.User;
-import es.deusto.sd.auctions.service.AuctionsService;
-import es.deusto.sd.auctions.service.AuthService;
+import es.deusto.sd.ecoembes.entity.Article;
+import es.deusto.sd.ecoembes.entity.Category;
+import es.deusto.sd.ecoembes.entity.User;
+import es.deusto.sd.ecoembes.service.AuctionsService;
+import es.deusto.sd.ecoembes.service.AuthService;
 
 @Configuration
 public class DataInitializer {
