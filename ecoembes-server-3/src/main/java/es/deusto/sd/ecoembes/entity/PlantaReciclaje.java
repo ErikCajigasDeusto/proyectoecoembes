@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class PlantaReciclaje {
 
-    private long id;
+    private Long id;
     private String direccion;
     private String codigoPostal;
     private String nombre;
@@ -21,7 +21,7 @@ public class PlantaReciclaje {
     }
 
     // Constructor con parámetros
-    public PlantaReciclaje(long id, String direccion,
+    public PlantaReciclaje(Long id, String direccion,
                           String codigoPostal, String nombre) {
         this.id = id;
         this.direccion = direccion;
@@ -30,11 +30,11 @@ public class PlantaReciclaje {
     }
 
     // Getters y setters
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

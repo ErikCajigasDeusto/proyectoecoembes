@@ -8,7 +8,7 @@ import java.util.Objects;
 
 public class Contenedor {
 
-    private long id;
+    private Long id;
     private String direccion;
     private int capacidadInicial;
 
@@ -21,7 +21,7 @@ public class Contenedor {
     }
 
     // Constructor con parámetros
-    public Contenedor(long id, String direccion,
+    public Contenedor(Long id, String direccion,
                       int capacidadInicial, Zona zona) {
         this.id = id;
         this.direccion = direccion;
@@ -30,11 +30,11 @@ public class Contenedor {
     }
 
     // Getters y setters
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -91,12 +91,9 @@ public class Contenedor {
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if (obj == null)
+        if (obj == null || getClass() != obj.getClass())
             return false;
-        if (getClass() != obj.getClass())
-            return false;
-
         Contenedor other = (Contenedor) obj;
-        return id == other.id;
+        return Objects.equals(id, other.id);
     }
 }

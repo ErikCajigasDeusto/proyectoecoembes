@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class Camion {
 
-    private long id;
+    private Long id;
     private String matricula;
     private double capacidadCarga;
 
@@ -19,18 +19,18 @@ public class Camion {
     }
 
     // Constructor con parámetros
-    public Camion(long id, String matricula, double capacidadCarga) {
+    public Camion(Long id, String matricula, double capacidadCarga) {
         this.id = id;
         this.matricula = matricula;
         this.capacidadCarga = capacidadCarga;
     }
 
     // Getters y setters
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

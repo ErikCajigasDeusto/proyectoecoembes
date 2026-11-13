@@ -19,7 +19,7 @@ import es.deusto.sd.ecoembes.entity.Ruta;
 @Service
 public class RutaService {
 
-    // Simulamos los datos en memoria, como en AuctionsService
+	// Almacén en memoria del servidor (Prototipo 1)
     private final Map<Long, Ruta> rutas =
             new ConcurrentHashMap<>();
 

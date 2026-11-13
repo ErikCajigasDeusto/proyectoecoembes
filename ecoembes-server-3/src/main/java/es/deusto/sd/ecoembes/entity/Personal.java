@@ -9,7 +9,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 public class Personal {
 
-    private long id;
+    private Long id;
     private String nombre;
     private String email;
     private String passwordHash;
@@ -22,7 +22,7 @@ public class Personal {
     }
 
     // Constructor con parámetros
-    public Personal(long id, String nombre,
+    public Personal(Long id, String nombre,
                     String email, String password) {
         this.id = id;
         this.nombre = nombre;
@@ -39,11 +39,11 @@ public class Personal {
     }
 
     // Getters y setters
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

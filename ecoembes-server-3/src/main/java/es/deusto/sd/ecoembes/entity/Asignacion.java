@@ -8,7 +8,7 @@ import java.util.Objects;
 
 public class Asignacion {
 
-    private long id;
+    private Long id;
     private LocalDate fecha;
     private int totalEnvases;
 
@@ -22,7 +22,7 @@ public class Asignacion {
     }
 
     // Constructor con parámetros
-    public Asignacion(long id, LocalDate fecha,
+    public Asignacion(Long id, LocalDate fecha,
                      PlantaReciclaje planta, Personal personal) {
         this.id = id;
         this.fecha = fecha;
@@ -31,11 +31,11 @@ public class Asignacion {
     }
 
     // Getters y setters
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

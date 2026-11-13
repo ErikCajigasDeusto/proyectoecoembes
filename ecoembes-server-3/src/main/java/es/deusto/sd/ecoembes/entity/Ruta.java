@@ -8,7 +8,7 @@ import java.util.Objects;
 
 public class Ruta {
 
-    private long id;
+    private Long id;
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
     private double duracionEstimada;
@@ -23,7 +23,7 @@ public class Ruta {
     }
 
     // Constructor con parámetros
-    public Ruta(long id, LocalDateTime fechaInicio,
+    public Ruta(Long id, LocalDateTime fechaInicio,
                 LocalDateTime fechaFin, double duracionEstimada,
                 double distanciaKm, Camion camion) {
         this.id = id;
@@ -35,11 +35,11 @@ public class Ruta {
     }
 
     // Getters y setters
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

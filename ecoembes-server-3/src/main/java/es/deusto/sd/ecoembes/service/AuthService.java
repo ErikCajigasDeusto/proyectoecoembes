@@ -10,7 +10,7 @@ import es.deusto.sd.ecoembes.entity.Personal;
 @Service
 public class AuthService {
 
-    // Empleados simulados, guardados en memoria
+	// Almacén en memoria del servidor (Prototipo 1)
     private final Map<String, Personal> empleados =
             new ConcurrentHashMap<>();
 

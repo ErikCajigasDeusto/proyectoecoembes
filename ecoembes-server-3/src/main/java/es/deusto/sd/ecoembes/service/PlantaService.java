@@ -15,7 +15,7 @@ import es.deusto.sd.ecoembes.entity.CapacidadPlanta;
 @Service
 public class PlantaService {
 
-    // Simulamos las plantas en memoria, como en AuctionsService
+	// Almacén en memoria del servidor (Prototipo 1)
     private final Map<Long, PlantaReciclaje> plantas =
             new ConcurrentHashMap<>();
 
