@@ -18,7 +18,7 @@ import es.deusto.sd.ecoembes.entity.PlantaReciclaje;
 @Service
 public class AsignacionService {
 
-    // Simulamos los datos en memoria, como en AuctionsService
+	// Almacén en memoria del servidor (Prototipo 1)
     private final Map<Long, Asignacion> asignaciones =
             new ConcurrentHashMap<>();
 

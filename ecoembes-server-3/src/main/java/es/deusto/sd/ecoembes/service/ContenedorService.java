@@ -18,7 +18,7 @@ import es.deusto.sd.ecoembes.entity.Zona;
 @Service
 public class ContenedorService {
 
-    // Fuente única de verdad en memoria (Prototipo 1)
+    // Almacén en memoria del servidor (Prototipo 1)
     private final Map<Long, Contenedor> contenedores = new HashMap<>();
     private final Map<String, Zona> zonas = new HashMap<>();
 
