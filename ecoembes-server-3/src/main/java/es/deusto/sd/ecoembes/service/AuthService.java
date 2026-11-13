@@ -1,79 +1,99 @@
-/**
- * Initially generated with ChatGPT 4o and adapted using GitHub Copilot.
- * Reviewed and updated with assistance from Claude Opus 4.8 (July 2026)
- * and ChatGPT-6.1 Sol (October 2026).
- */
+
 package es.deusto.sd.ecoembes.service;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
 
-import es.deusto.sd.ecoembes.entity.User;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import es.deusto.sd.ecoembes.entity.Personal;
 
 @Service
 public class AuthService {
 
-    // Simulating a user repository (thread-safe: shared across request threads)
-    private final Map<String, User> userRepository = new ConcurrentHashMap<>();
+    // Empleados simulados, guardados en memoria
+    private final Map<String, Personal> empleados =
+            new ConcurrentHashMap<>();
 
-    // Storage to keep the session of the users that are logged in
-    private final Map<String, User> tokenStore = new ConcurrentHashMap<>();
+    // Sesiones activas: token asociado al empleado
+    private final Map<Long, Personal> sesionesActivas =
+            new ConcurrentHashMap<>();
 
-    // Login method that checks if the user exists in the database and validates the password
-    public Optional<String> login(String email, String password) {
+    // Último token generado
+    private static long ultimoToken = 0;
+
+    // Constructor
+    public AuthService() {
+    }
+
+    // Iniciar sesión
+    public Long login(String email, String password) {
+
         if (email == null || password == null) {
-            return Optional.empty();
+            throw new IllegalArgumentException(
+                    "Email o contraseña no válidos"
+            );
         }
-        
-        User user = userRepository.get(email);
-        
-        if (user != null && user.checkPassword(password)) {
-            String token = generateToken();  // Generate a random token for the session
-            tokenStore.put(token, user);     // Store the token and associate it with the user
 
-            return Optional.of(token);
-        } else {
-        	return Optional.empty();
+        Personal empleado = empleados.get(email);
+
+        if (empleado == null ||
+                !empleado.comprobarPassword(password)) {
+            throw new IllegalArgumentException(
+                    "Credenciales incorrectas"
+            );
+        }
+
+        // Generar el token y guardar la sesión
+        Long token = generarToken();
+        sesionesActivas.put(token, empleado);
+
+        return token;
+    }
+
+    // Cerrar sesión
+    public void logout(Long token) {
+        if (token != null) {
+            sesionesActivas.remove(token);
         }
     }
-    
-    // Logout method to remove the token from the session store
-    public Optional<Boolean> logout(String token) {
-        if (tokenStore.containsKey(token)) {
-            tokenStore.remove(token);
 
-            return Optional.of(true);
-        } else {
-            return Optional.empty();
+    // Comprobar un token y obtener su empleado
+    public Personal validarToken(Long token) {
+
+        if (token == null) {
+            throw new SecurityException("Token no válido");
+        }
+
+        Personal empleado = sesionesActivas.get(token);
+
+        if (empleado == null) {
+            throw new SecurityException(
+                    "Sesión no válida o cerrada"
+            );
+        }
+
+        return empleado;
+    }
+
+    // Añadir empleados de prueba
+    public void addPersonal(Personal empleado) {
+
+        if (empleado != null && empleado.getEmail() != null) {
+            empleados.putIfAbsent(
+                    empleado.getEmail(),
+                    empleado
+            );
         }
     }
-    
-    // Method to add a new user to the repository
-    public void addUser(User user) {
-    	if (user != null) {
-    		userRepository.putIfAbsent(user.getEmail(), user);
-    	}
-    }
-    
-    // Method to get the user based on the token
-    public User getUserByToken(String token) {
-        return tokenStore.get(token); 
-    }
-    
-    // Method to get the user based on the email
-    public User getUserByEmail(String email) {
-		return userRepository.get(email);
-	}
 
-    // Generates a unique, non-guessable session token.
-    // A timestamp-based token is NOT unique (two logins in the same millisecond would
-    // collide, overwriting each other's session) and is predictable. UUID.randomUUID()
-    // provides uniqueness and unpredictability.
-    private static String generateToken() {
-        return UUID.randomUUID().toString();
+    // Generar un token numérico basado en la hora
+    private static synchronized Long generarToken() {
+
+        long ahora = System.currentTimeMillis();
+
+        ultimoToken = Math.max(ahora, ultimoToken + 1);
+
+        return ultimoToken;
     }
 }
