@@ -1,6 +1,7 @@
 
 package es.deusto.sd.ecoembes.entity;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -21,7 +22,7 @@ public class Contenedor {
 
     // Constructor con parámetros
     public Contenedor(long id, String direccion,
-                     int capacidadInicial, Zona zona) {
+                      int capacidadInicial, Zona zona) {
         this.id = id;
         this.direccion = direccion;
         this.capacidadInicial = capacidadInicial;
@@ -69,9 +70,15 @@ public class Contenedor {
         this.estados = estados;
     }
 
-    // Registrar un nuevo estado
-    public void actualizarEstado(EstadoContenedor estado) {
-        estados.add(estado);
+    // Registrar un nuevo estado del contenedor
+    public void actualizarEstado(int envases, NivelLlenado nivel) {
+        EstadoContenedor nuevoEstado = new EstadoContenedor(
+                LocalDateTime.now(),
+                envases,
+                nivel
+        );
+
+        estados.add(nuevoEstado);
     }
 
     // hashCode y equals
