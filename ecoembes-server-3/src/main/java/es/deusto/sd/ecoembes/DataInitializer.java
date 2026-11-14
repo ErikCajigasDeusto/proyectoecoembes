@@ -1,107 +1,312 @@
-///**
-// * Initially generated with ChatGPT 4o and adapted using GitHub Copilot.
-// * Reviewed and updated with assistance from Claude Opus 4.8 (July 2026)
-// * and ChatGPT-6.1 Sol (October 2026).
-// */
-//package es.deusto.sd.ecoembes;
-//
-//import java.util.Calendar;
-//import java.util.Date;
-//
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//import org.springframework.boot.CommandLineRunner;
-//import org.springframework.context.annotation.Bean;
-//import org.springframework.context.annotation.Configuration;
-//
-//import es.deusto.sd.ecoembes.entity.Article;
-//import es.deusto.sd.ecoembes.entity.Category;
-//import es.deusto.sd.ecoembes.entity.User;
-//import es.deusto.sd.ecoembes.service.AuctionsService;
-//import es.deusto.sd.ecoembes.service.AuthService;
-//
-//@Configuration
-//public class DataInitializer {
-//
-//	private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
-//	
-//    @Bean
-//    CommandLineRunner initData(AuctionsService auctionsService, AuthService authService) {
-//		return args -> {			
-//			// Create some users.
-//			User batman = new User("BruceWayne", "batman@dc.com", "Batm@n123!");
-//			User spiderman = new User("PeterParker", "spiderman@marvel.com", "Sp!derM4n2023");
-//			User superman = new User("ClarkKent", "superman@dc.com", "Sup3rm@n456!");
-//			User wonderWoman = new User("DianaPrince", "wonderwoman@dc.com", "Wond3rW0m@n!789");
-//			User captainMarvel = new User("CarolDanvers", "captainmarvel@marvel.com", "C@ptMarv3l#987");
-//			User blackWidow = new User("NatashaRomanoff", "blackwidow@marvel.com", "Bl@ckWid0w2023");
-//
-//			authService.addUser(batman);
-//			authService.addUser(spiderman);
-//			authService.addUser(superman);
-//			authService.addUser(wonderWoman);
-//			authService.addUser(captainMarvel);
-//			authService.addUser(blackWidow);			
-//			
-//			logger.info("Users saved!");
-//			
-//			// Create some categories
-//			Category electronics = new Category("Electronics");
-//			Category sports = new Category("Sporting Goods");
-//			Category motors = new Category("Motors");
-//			
-//			auctionsService.addCategory(electronics);
-//			auctionsService.addCategory(sports);
-//			auctionsService.addCategory(motors);
-//			logger.info("Categories saved!");
-//
-//
-//			// Initialize auctions end date
-//			Calendar calendar = Calendar.getInstance();
-//			
-//			// Set calendar to December 31, current year
-//			calendar.set(Calendar.MONTH, Calendar.DECEMBER);
-//			calendar.set(Calendar.DAY_OF_MONTH, 31);
-//			calendar.set(Calendar.HOUR_OF_DAY, 23);
-//			calendar.set(Calendar.MINUTE, 59);
-//			calendar.set(Calendar.SECOND, 59);
-//			calendar.set(Calendar.MILLISECOND, 999);
-//			
-//			Date auctionEndDate = calendar.getTime();
-//			
-//			// Articles of Electronics category
-//            // Articles of Electronics category
-//            Article iphone = new Article(0, "Apple iPhone 16 Pro", 1099.99, auctionEndDate, electronics, batman);
-//            Article ps5 = new Article(1, "Sony PlayStation 5 Pro", 699.99, auctionEndDate, electronics, spiderman);
-//            Article macbook = new Article(2, "MacBook Air M3", 1099.99, auctionEndDate, electronics, wonderWoman);
-//            Article samsung = new Article(3, "Samsung Galaxy S24 Ultra", 1299.99, auctionEndDate, electronics, captainMarvel);
-//
-//            // Articles of Sporting Goods category
-//            Article tennisRacket = new Article(4, "Wilson Blade 98 V9 Tennis Racket", 249.99, auctionEndDate, sports, batman);
-//            Article soccerBall = new Article(5, "Adidas Fussballliebe Pro Ball", 149.99, auctionEndDate, sports, blackWidow);
-//            Article fitbit = new Article(6, "Fitbit Charge 6 Fitness Tracker", 159.99, auctionEndDate, sports, captainMarvel);
-//            Article peloton = new Article(7, "Peloton Bike+", 2495.00, auctionEndDate, sports, wonderWoman);
-//
-//            // Articles of Motors category
-//            Article c3 = new Article(8, "Citroën C3 1.2 PureTech Feel (2020)", 10890.00, auctionEndDate, motors, batman);
-//            Article mgZs = new Article(9, "MG ZS 1.5 VTI-tech Comfort (2022)", 13990.00, auctionEndDate, motors, superman);
-//            Article fiat500 = new Article(10, "Fiat 500 1.0 Hybrid Cult ECO (2021)", 9950.00, auctionEndDate, motors, spiderman);
-//            Article tucson = new Article(11, "Hyundai Tucson 1.6 TGDI Maxx (2021)", 20900.00, auctionEndDate, motors, captainMarvel);
-//
-//            auctionsService.addArticle(iphone);
-//            auctionsService.addArticle(ps5);
-//            auctionsService.addArticle(macbook);
-//            auctionsService.addArticle(samsung);
-//            auctionsService.addArticle(tennisRacket);
-//            auctionsService.addArticle(soccerBall);
-//            auctionsService.addArticle(fitbit);
-//            auctionsService.addArticle(peloton);
-//            auctionsService.addArticle(c3);
-//            auctionsService.addArticle(mgZs);
-//            auctionsService.addArticle(fiat500);
-//            auctionsService.addArticle(tucson);
-//            
-//            logger.info("Articles saved!");						
-//		};
-//	}
-//}
+/**
+ * Initially generated with ChatGPT and adapted to the Ecoembes project.
+ *
+ * Initializes in-memory test data for employees, recycling plants,
+ * containers, container states and assignments.
+ */
+
+package es.deusto.sd.ecoembes;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import es.deusto.sd.ecoembes.dto.AsignacionDTO;
+import es.deusto.sd.ecoembes.dto.ContenedorDTO;
+import es.deusto.sd.ecoembes.dto.EstadoDTO;
+import es.deusto.sd.ecoembes.entity.CapacidadPlanta;
+import es.deusto.sd.ecoembes.entity.NivelLlenado;
+import es.deusto.sd.ecoembes.entity.Personal;
+import es.deusto.sd.ecoembes.entity.PlantaReciclaje;
+import es.deusto.sd.ecoembes.service.AsignacionService;
+import es.deusto.sd.ecoembes.service.AuthService;
+import es.deusto.sd.ecoembes.service.ContenedorService;
+import es.deusto.sd.ecoembes.service.PlantaService;
+
+@Configuration
+public class DataInitializer {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(DataInitializer.class);
+
+    @Bean
+    CommandLineRunner initData(
+            AuthService authService,
+            ContenedorService contenedorService,
+            PlantaService plantaService,
+            AsignacionService asignacionService) {
+
+        return args -> {
+
+            LocalDate hoy = LocalDate.now();
+            LocalDateTime ahora = LocalDateTime.now();
+
+            // --------------------------------------------------
+            // 1. PERSONAL
+            // --------------------------------------------------
+
+            Personal ana = new Personal(
+                    1L,
+                    "Ana García",
+                    "ana@ecoembes.com",
+                    "Ana1234!"
+            );
+
+            Personal iker = new Personal(
+                    2L,
+                    "Iker López",
+                    "iker@ecoembes.com",
+                    "Iker1234!"
+            );
+
+            Personal marta = new Personal(
+                    3L,
+                    "Marta Ruiz",
+                    "marta@ecoembes.com",
+                    "Marta1234!"
+            );
+
+            authService.addPersonal(ana);
+            authService.addPersonal(iker);
+            authService.addPersonal(marta);
+
+            logger.info("Personal de prueba inicializado.");
+
+            // --------------------------------------------------
+            // 2. PLANTAS DE RECICLAJE Y CAPACIDADES
+            // --------------------------------------------------
+
+            PlantaReciclaje plantaBilbao = new PlantaReciclaje(
+                    1L,
+                    "Polígono Industrial Asua, Bilbao",
+                    "48950",
+                    "Planta de Reciclaje de Bilbao"
+            );
+
+            PlantaReciclaje plantaVitoria = new PlantaReciclaje(
+                    2L,
+                    "Polígono Industrial Jundiz, Vitoria-Gasteiz",
+                    "01015",
+                    "Planta de Reciclaje de Vitoria"
+            );
+
+            // Capacidades de la planta de Bilbao
+            plantaBilbao.getCapacidades().add(
+                    new CapacidadPlanta(hoy, 125.0)
+            );
+
+            plantaBilbao.getCapacidades().add(
+                    new CapacidadPlanta(hoy.plusDays(1), 110.0)
+            );
+
+            // Capacidades de la planta de Vitoria
+            plantaVitoria.getCapacidades().add(
+                    new CapacidadPlanta(hoy, 90.0)
+            );
+
+            plantaVitoria.getCapacidades().add(
+                    new CapacidadPlanta(hoy.plusDays(1), 85.0)
+            );
+
+            plantaService.addPlanta(plantaBilbao);
+            plantaService.addPlanta(plantaVitoria);
+
+            logger.info("Plantas y capacidades inicializadas.");
+
+            // Registramos las plantas y el personal
+            // en el servicio de asignaciones.
+
+            asignacionService.addPlanta(plantaBilbao);
+            asignacionService.addPlanta(plantaVitoria);
+
+            asignacionService.addPersonal(ana);
+            asignacionService.addPersonal(iker);
+            asignacionService.addPersonal(marta);
+
+            // --------------------------------------------------
+            // 3. CONTENEDORES
+            // --------------------------------------------------
+
+            var contenedor1 = contenedorService.crear(
+                    new ContenedorDTO(
+                            null,
+                            "Calle Gran Vía 10",
+                            "48001",
+                            100
+                    )
+            );
+
+            var contenedor2 = contenedorService.crear(
+                    new ContenedorDTO(
+                            null,
+                            "Calle Diputación 15",
+                            "48001",
+                            120
+                    )
+            );
+
+            var contenedor3 = contenedorService.crear(
+                    new ContenedorDTO(
+                            null,
+                            "Calle Ercilla 20",
+                            "48009",
+                            150
+                    )
+            );
+
+            var contenedor4 = contenedorService.crear(
+                    new ContenedorDTO(
+                            null,
+                            "Calle Dato 8",
+                            "01001",
+                            100
+                    )
+            );
+
+            var contenedor5 = contenedorService.crear(
+                    new ContenedorDTO(
+                            null,
+                            "Avenida Gasteiz 25",
+                            "01005",
+                            130
+                    )
+            );
+
+            logger.info("Contenedores inicializados.");
+
+            // Registramos los contenedores en el servicio
+            // de asignaciones.
+
+            asignacionService.addContenedor(contenedor1);
+            asignacionService.addContenedor(contenedor2);
+            asignacionService.addContenedor(contenedor3);
+            asignacionService.addContenedor(contenedor4);
+            asignacionService.addContenedor(contenedor5);
+
+            // --------------------------------------------------
+            // 4. ESTADOS DE LOS CONTENEDORES
+            // --------------------------------------------------
+
+            // Contenedor 1
+            contenedorService.actualizarEstado(
+                    contenedor1.getId(),
+                    new EstadoDTO(
+                            ahora.minusDays(2),
+                            35,
+                            NivelLlenado.VERDE
+                    )
+            );
+
+            contenedorService.actualizarEstado(
+                    contenedor1.getId(),
+                    new EstadoDTO(
+                            ahora,
+                            55,
+                            NivelLlenado.NARANJA
+                    )
+            );
+
+            // Contenedor 2
+            contenedorService.actualizarEstado(
+                    contenedor2.getId(),
+                    new EstadoDTO(
+                            ahora.minusDays(1),
+                            40,
+                            NivelLlenado.VERDE
+                    )
+            );
+
+            contenedorService.actualizarEstado(
+                    contenedor2.getId(),
+                    new EstadoDTO(
+                            ahora,
+                            95,
+                            NivelLlenado.ROJO
+                    )
+            );
+
+            // Contenedor 3
+            contenedorService.actualizarEstado(
+                    contenedor3.getId(),
+                    new EstadoDTO(
+                            ahora,
+                            70,
+                            NivelLlenado.NARANJA
+                    )
+            );
+
+            // Contenedor 4
+            contenedorService.actualizarEstado(
+                    contenedor4.getId(),
+                    new EstadoDTO(
+                            ahora,
+                            20,
+                            NivelLlenado.VERDE
+                    )
+            );
+
+            // Contenedor 5
+            contenedorService.actualizarEstado(
+                    contenedor5.getId(),
+                    new EstadoDTO(
+                            ahora,
+                            115,
+                            NivelLlenado.NARANJA
+                    )
+            );
+
+            logger.info("Estados de contenedores inicializados.");
+
+            // --------------------------------------------------
+            // 5. ASIGNACIONES
+            // --------------------------------------------------
+
+            // Asignación de contenedores a la planta de Bilbao
+
+            AsignacionDTO asignacionBilbao = new AsignacionDTO(
+                    null,
+                    plantaBilbao.getId(),
+                    Arrays.asList(
+                            contenedor1.getId(),
+                            contenedor2.getId(),
+                            contenedor3.getId()
+                    ),
+                    hoy,
+                    0,
+                    ana.getId()
+            );
+
+            asignacionService.crear(asignacionBilbao);
+
+            // Asignación de contenedores a la planta de Vitoria
+
+            AsignacionDTO asignacionVitoria = new AsignacionDTO(
+                    null,
+                    plantaVitoria.getId(),
+                    Arrays.asList(
+                            contenedor4.getId(),
+                            contenedor5.getId()
+                    ),
+                    hoy,
+                    0,
+                    iker.getId()
+            );
+
+            asignacionService.crear(asignacionVitoria);
+
+            logger.info("Asignaciones inicializadas.");
+
+            // --------------------------------------------------
+            // FIN DE LA INICIALIZACIÓN
+            // --------------------------------------------------
+
+            logger.info("Datos de prueba de Ecoembes cargados correctamente.");
+        };
+    }
+}

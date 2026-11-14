@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import es.deusto.sd.ecoembes.entity.PlantaReciclaje;
 import es.deusto.sd.ecoembes.entity.CapacidadPlanta;
+import es.deusto.sd.ecoembes.dto.CapacidadDTO;
+
 
 @Service
 public class PlantaService {
@@ -53,4 +55,34 @@ public class PlantaService {
             plantas.putIfAbsent(planta.getId(), planta);
         }
     }
+    
+    
+    /*
+     * devuelve una lista de capacidadesDTO para una fecha dada
+     * 
+     * */
+    public List<CapacidadDTO> consultarCapacidadesDTO(LocalDate fecha) 
+    {
+    	
+        if (fecha == null) {
+            throw new IllegalArgumentException("La fecha no puede ser nula");
+        }
+
+        List<CapacidadDTO> resultado = new ArrayList<>();
+
+        for (PlantaReciclaje planta : plantas.values()) {
+            for (CapacidadPlanta capacidad : planta.getCapacidades()) {
+                if (fecha.equals(capacidad.getFecha())) {
+                    resultado.add(new CapacidadDTO(
+                            planta.getId(),
+                            capacidad.getFecha(),
+                            capacidad.getToneladasDisponibles()
+                    ));
+                }
+            }
+        }
+
+        return resultado;
+    }
+
 }

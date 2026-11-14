@@ -1,7 +1,4 @@
-/**
- * Entirely generated with ChatGPT-6.1 in September and October 2026.
- * Reviewed and updated with assistance from ChatGPT-6.1 Sol (October 2026).
- */
+
 package es.deusto.sd.ecoembes;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,8 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import tools.jackson.databind.json.JsonMapper;
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class EcoembesApplicationTest {
 
@@ -26,66 +21,97 @@ class EcoembesApplicationTest {
 
     private final HttpClient client = HttpClient.newHttpClient();
 
+    /**
+     * Comprueba que la documentación OpenAPI y Swagger UI están disponibles
+     * y que se han publicado las rutas principales de Ecoembes.
+     */
     @Test
     void servesOpenApiAndSwaggerUi() throws Exception {
         HttpResponse<String> api = get("/v3/api-docs");
         assertEquals(200, api.statusCode());
         assertTrue(api.body().contains("/auth/login"));
-        assertTrue(api.body().contains("/auctions/articles/{articleId}/bid"));
+        assertTrue(api.body().contains("/auth/logout"));
+        assertTrue(api.body().contains("/contenedores"));
+        assertTrue(api.body().contains("/plantas/capacidades"));
+        assertTrue(api.body().contains("/asignaciones"));
+        assertTrue(api.body().contains("/alertas/saturacion"));
+
         HttpResponse<String> ui = get("/swagger-ui/index.html");
         assertEquals(200, ui.statusCode());
         assertTrue(ui.body().contains("swagger-ui"));
     }
 
+    /**
+     * Comprueba que el login rechaza credenciales que no están registradas.
+     * AuthService mantiene los empleados en memoria y no contiene usuarios
+     * iniciales en el código compartido.
+     */
     @Test
-    void completesTheClassroomLoginBidAndLogoutWorkflow() throws Exception {
-        assertEquals(200, get("/auctions/categories").statusCode());
-        assertEquals(200, get("/auctions/categories/Sporting%20Goods/articles?currency=EUR").statusCode());
-        assertEquals(200, get("/auctions/articles/1/details?currency=EUR").statusCode());
-        String credentials = "{\"email\":\"batman@dc.com\",\"password\":\"Batm@n123!\"}";
+    void rejectsUnknownEcoembesCredentials() throws Exception {
+        String credentials = "{\"email\":\"empleado@ecoembes.com\",\"password\":\"password123\"}";
         HttpResponse<String> login = post("/auth/login", "application/json", credentials);
-        assertEquals(200, login.statusCode());
-        String token = login.body();
-        assertEquals(204, post("/auctions/articles/1/bid?amount=800&currency=EUR", "text/plain", token).statusCode());
-        var details = JsonMapper.builder().build().readTree(get("/auctions/articles/1/details?currency=EUR").body());
-        assertEquals(800.0, details.get("currentPrice").asDouble());
-        assertEquals(1, details.get("bids").asInt());
-        assertEquals(409, post("/auctions/articles/1/bid?amount=600&currency=EUR", "text/plain", token).statusCode());
-        assertEquals(204, post("/auth/logout", "text/plain", token).statusCode());
-        assertEquals(401, post("/auctions/articles/1/bid?amount=700&currency=EUR", "text/plain", token).statusCode());
+        assertEquals(401, login.statusCode());
     }
 
+    /**
+     * Comprueba que el login no acepta un cuerpo sin los datos necesarios.
+     */
     @Test
-    void rejectsIncompleteCredentialsWithoutAnInternalServerError() throws Exception {
+    void rejectsIncompleteCredentials() throws Exception {
         assertEquals(401, post("/auth/login", "application/json", "{}").statusCode());
-        assertEquals(401, post("/auth/login", "application/json", "{\"email\":\"batman@dc.com\"}").statusCode());
+        assertEquals(401, post("/auth/login", "application/json",
+                "{\"email\":\"empleado@ecoembes.com\"}").statusCode());
     }
 
+    /**
+     * Comprueba que las operaciones protegidas no permiten acceder
+     * utilizando un token que no corresponde a una sesión activa.
+     */
     @Test
-    void validatesCurrencyArticleIdsAndBidAmounts() throws Exception {
-        assertEquals(400, get("/auctions/articles/1/details?currency=INVALID").statusCode());
-        assertEquals(404, get("/auctions/articles/999/details?currency=EUR").statusCode());
-        String credentials = "{\"email\":\"batman@dc.com\",\"password\":\"Batm@n123!\"}";
-        HttpResponse<String> login = post("/auth/login", "application/json", credentials);
-        assertEquals(200, login.statusCode());
-        String token = login.body();
-        try {
-            assertEquals(400, post("/auctions/articles/2/bid?amount=NaN&currency=EUR", "text/plain", token).statusCode());
-            assertEquals(400, post("/auctions/articles/2/bid?amount=0&currency=EUR", "text/plain", token).statusCode());
-            assertEquals(404, post("/auctions/articles/999/bid?amount=2000&currency=EUR", "text/plain", token).statusCode());
-        } finally {
-            assertEquals(204, post("/auth/logout", "text/plain", token).statusCode());
-        }
+    void rejectsInvalidTokensOnProtectedEndpoints() throws Exception {
+        String token = "token=999999999";
+
+        assertEquals(401, get("/alertas/saturacion?" + token).statusCode());
+        assertEquals(401, post("/alertas/saturacion/evaluar?" + token,
+                "text/plain", "").statusCode());
+        assertEquals(401, get("/plantas/capacidades?" + token + "&fecha=2026-11-14").statusCode());
+        assertEquals(401, get("/asignaciones?" + token
+                + "&idPlanta=1&ini=2026-11-01&fin=2026-11-30").statusCode());
+        assertEquals(401, get("/contenedores/1/estado?" + token
+                + "&fecha=2026-11-14").statusCode());
+    }
+
+    /**
+     * Comprueba que una petición de creación de contenedor con un token
+     * inválido no llega a ejecutar la operación de creación.
+     */
+    @Test
+    void doesNotCreateContainerWithInvalidToken() throws Exception {
+        String container = "{\"direccion\":\"Calle Mayor 10\","
+                + "\"codigoPostal\":\"48001\",\"capacidadInicial\":100}";
+
+        HttpResponse<String> response = post(
+                "/contenedores?token=999999999",
+                "application/json", container);
+
+        assertEquals(401, response.statusCode());
     }
 
     private HttpResponse<String> get(String path) throws Exception {
-        return client.send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).GET().build(),
+        return client.send(
+                HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
+                        .GET()
+                        .build(),
                 HttpResponse.BodyHandlers.ofString());
     }
 
-    private HttpResponse<String> post(String path, String contentType, String body) throws Exception {
-        return client.send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
-                .header("Content-Type", contentType).POST(HttpRequest.BodyPublishers.ofString(body)).build(),
+    private HttpResponse<String> post(String path, String contentType, String body)
+            throws Exception {
+        return client.send(
+                HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
+                        .header("Content-Type", contentType)
+                        .POST(HttpRequest.BodyPublishers.ofString(body))
+                        .build(),
                 HttpResponse.BodyHandlers.ofString());
     }
 }
