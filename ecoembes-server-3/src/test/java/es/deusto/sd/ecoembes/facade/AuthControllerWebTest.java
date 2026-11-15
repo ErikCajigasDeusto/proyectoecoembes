@@ -66,7 +66,6 @@ class AuthControllerWebTest {
         Personal empleado = new Personal(1L, "Ana García", "ana.garcia@ecoembes.es", "password123");
 
         when(authService.validarToken(tokenValido)).thenReturn(empleado);
-        doNothing().when(authService).logout(tokenValido);
 
         mockMvc.perform(post("/auth/logout")
                         .param("token", String.valueOf(tokenValido)))
@@ -79,8 +78,8 @@ class AuthControllerWebTest {
     void logoutRejectsUnknownToken() throws Exception {
         Long tokenInvalido = 999999999L;
 
-        doThrow(new SecurityException("Sesión no válida o cerrada"))
-                .when(authService).validarToken(tokenInvalido);
+        when(authService.validarToken(tokenInvalido))
+                .thenThrow(new SecurityException("Sesión no válida o cerrada"));
 
         mockMvc.perform(post("/auth/logout")
                         .param("token", String.valueOf(tokenInvalido)))

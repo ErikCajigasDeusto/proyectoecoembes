@@ -42,7 +42,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestParam Long token) {
+    public ResponseEntity<Void> logout(@RequestParam("token") Long token) {
         try {
             authService.validarToken(token);
             authService.logout(token);
