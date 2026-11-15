@@ -25,12 +25,17 @@ class ContenedorControllerTest {
 
     @BeforeEach
     void setUp() {
+
         service = new ContenedorService(new AlertaService());
 
         fecha = LocalDateTime.of(2026, 11, 14, 10, 0);
 
         contenedor = service.crear(
-                new ContenedorDTO(null, "Calle Mayor 10", "48001", 100));
+                new ContenedorDTO(
+                        null,
+                        "Calle Mayor 10",
+                        "48001",
+                        100));
     }
 
     @Test
@@ -41,6 +46,10 @@ class ContenedorControllerTest {
 
         assertEquals("Calle Mayor 10", contenedor.getDireccion());
         assertEquals("48001", contenedor.getZona().getCodigoPostal());
+
+        assertSame(
+                contenedor,
+                service.obtenerPorId(contenedor.getId()));
     }
 
     @Test
@@ -51,29 +60,35 @@ class ContenedorControllerTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.crear(
-                        new ContenedorDTO(null, "", "48001", 100)));
+                        new ContenedorDTO(
+                                null, "", "48001", 100)));
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.crear(
-                        new ContenedorDTO(null, "Calle", "48001", 0)));
+                        new ContenedorDTO(
+                                null, "Calle", "48001", 0)));
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.crear(
-                        new ContenedorDTO(null, "Calle", "", 100)));
+                        new ContenedorDTO(
+                                null, "Calle", "", 100)));
     }
 
     @Test
     void rejectsDuplicateContainerId() {
 
-        // El contenedor del setUp ya tiene el ID 1.
+        // Ya existe un contenedor con ID 1.
         ContenedorDTO dto = new ContenedorDTO(
-                1L, "Calle Nueva 20", "48002", 200);
+                1L,
+                "Calle Nueva 20",
+                "48002",
+                200);
 
-        // Intentar crear otro contenedor con ID 1 debe producir un error.
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.crear(dto));
 
-        // El contenedor original debe conservar sus datos.
+        // El contenedor original no debe modificarse.
         assertEquals(1L, contenedor.getId());
         assertEquals("Calle Mayor 10", contenedor.getDireccion());
         assertEquals("48001", contenedor.getZona().getCodigoPostal());
@@ -82,17 +97,37 @@ class ContenedorControllerTest {
     @Test
     void generatesNextIdAfterManualId() {
 
+        // El setUp ya ha creado el contenedor con ID 1.
+
         // Creamos un contenedor con ID manual 12.
         Contenedor manual = service.crear(
-                new ContenedorDTO(12L, "Calle Manual", "48003", 100));
+                new ContenedorDTO(
+                        12L,
+                        "Calle Manual",
+                        "48003",
+                        100));
 
         assertEquals(12L, manual.getId());
 
         // El siguiente contenedor automático debe tener ID 13.
         Contenedor automatico = service.crear(
-                new ContenedorDTO(null, "Calle Automatica", "48004", 100));
+                new ContenedorDTO(
+                        null,
+                        "Calle Automatica",
+                        "48004",
+                        100));
 
         assertEquals(13L, automatico.getId());
+
+        // El siguiente debe tener ID 14.
+        Contenedor siguiente = service.crear(
+                new ContenedorDTO(
+                        null,
+                        "Calle Siguiente",
+                        "48005",
+                        100));
+
+        assertEquals(14L, siguiente.getId());
     }
 
     @Test
@@ -100,19 +135,24 @@ class ContenedorControllerTest {
 
         service.actualizarEstado(
                 contenedor.getId(),
-                new EstadoDTO(fecha, 30, NivelLlenado.VERDE));
+                new EstadoDTO(
+                        fecha,
+                        30,
+                        NivelLlenado.VERDE));
 
         service.actualizarEstado(
                 contenedor.getId(),
-                new EstadoDTO(fecha.plusHours(2), 70, NivelLlenado.NARANJA));
+                new EstadoDTO(
+                        fecha.plusHours(2),
+                        70,
+                        NivelLlenado.NARANJA));
 
-        // Comprobamos que se han guardado los dos estados.
         List<EstadoContenedor> estados = contenedor.getEstados();
 
         assertEquals(2, estados.size());
 
-        // El último estado debe contener los datos de la segunda actualización.
-        EstadoContenedor ultimoEstado = estados.get(estados.size() - 1);
+        EstadoContenedor ultimoEstado =
+                estados.get(estados.size() - 1);
 
         assertEquals(70, ultimoEstado.getNumeroEnvases());
         assertEquals(NivelLlenado.NARANJA, ultimoEstado.getNivel());
@@ -121,20 +161,26 @@ class ContenedorControllerTest {
     @Test
     void rejectsStateForUnknownContainerAndCapacityOverflow() {
 
-        assertThrows(java.util.NoSuchElementException.class,
+        assertThrows(
+                java.util.NoSuchElementException.class,
                 () -> service.actualizarEstado(
                         999L,
-                        new EstadoDTO(fecha, 10, NivelLlenado.VERDE)));
+                        new EstadoDTO(
+                                fecha, 10, NivelLlenado.VERDE)));
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.actualizarEstado(
                         contenedor.getId(),
-                        new EstadoDTO(fecha, 101, NivelLlenado.ROJO)));
+                        new EstadoDTO(
+                                fecha, 101, NivelLlenado.ROJO)));
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.actualizarEstado(
                         contenedor.getId(),
-                        new EstadoDTO(fecha, 10, null)));
+                        new EstadoDTO(
+                                fecha, 10, null)));
     }
 
     @Test
@@ -142,15 +188,24 @@ class ContenedorControllerTest {
 
         service.actualizarEstado(
                 contenedor.getId(),
-                new EstadoDTO(fecha.minusDays(2), 10, NivelLlenado.VERDE));
+                new EstadoDTO(
+                        fecha.minusDays(2),
+                        10,
+                        NivelLlenado.VERDE));
 
         service.actualizarEstado(
                 contenedor.getId(),
-                new EstadoDTO(fecha, 20, NivelLlenado.NARANJA));
+                new EstadoDTO(
+                        fecha,
+                        20,
+                        NivelLlenado.NARANJA));
 
         service.actualizarEstado(
                 contenedor.getId(),
-                new EstadoDTO(fecha.plusDays(2), 30, NivelLlenado.ROJO));
+                new EstadoDTO(
+                        fecha.plusDays(2),
+                        30,
+                        NivelLlenado.ROJO));
 
         List<EstadoContenedor> uso = service.consultarUso(
                 contenedor.getId(),
@@ -165,7 +220,8 @@ class ContenedorControllerTest {
     @Test
     void rejectsUsageForUnknownContainer() {
 
-        assertThrows(java.util.NoSuchElementException.class,
+        assertThrows(
+                java.util.NoSuchElementException.class,
                 () -> service.consultarUso(
                         999L,
                         fecha.toLocalDate(),
@@ -175,16 +231,46 @@ class ContenedorControllerTest {
     @Test
     void rejectsInvalidUsageDateRange() {
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.consultarUso(
                         contenedor.getId(),
                         null,
                         fecha.toLocalDate()));
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.consultarUso(
                         contenedor.getId(),
                         fecha.toLocalDate(),
                         fecha.toLocalDate().minusDays(1)));
+    }
+
+    @Test
+    void consultsZoneAndReturnsNoStateForUnknownZone() {
+
+        service.actualizarEstado(
+                contenedor.getId(),
+                new EstadoDTO(
+                        fecha,
+                        25,
+                        NivelLlenado.VERDE));
+
+        assertEquals(
+                1,
+                service.consultarZona(
+                        "48001",
+                        fecha.toLocalDate()).size());
+
+        assertTrue(
+                service.consultarZona(
+                        "00000",
+                        fecha.toLocalDate()).isEmpty());
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.consultarZona(
+                        null,
+                        fecha.toLocalDate()));
     }
 }
