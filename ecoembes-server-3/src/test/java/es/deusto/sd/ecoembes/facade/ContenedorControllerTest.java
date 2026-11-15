@@ -3,7 +3,6 @@ package es.deusto.sd.ecoembes.facade;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,7 +17,7 @@ import es.deusto.sd.ecoembes.entity.NivelLlenado;
 import es.deusto.sd.ecoembes.service.AlertaService;
 import es.deusto.sd.ecoembes.service.ContenedorService;
 
-class ContenedorServiceTest {
+class ContenedorControllerTest {
 
     private ContenedorService service;
     private LocalDateTime fecha;
