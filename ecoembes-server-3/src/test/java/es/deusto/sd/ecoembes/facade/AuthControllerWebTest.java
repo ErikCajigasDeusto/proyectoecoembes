@@ -1,18 +1,11 @@
 package es.deusto.sd.ecoembes.facade;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -20,69 +13,60 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import es.deusto.sd.ecoembes.entity.Personal;
 import es.deusto.sd.ecoembes.service.AuthService;
 
-@ExtendWith(MockitoExtension.class)
 class AuthControllerWebTest {
 
-    @Mock
     private AuthService authService;
-
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService)).build();
+        authService = new AuthService();
+
+        authService.addPersonal(
+                new Personal(1L, "Ana García",
+                        "ana@ecoembes.com", "Ana1234!"));
+
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(new AuthController(authService))
+                .build();
     }
 
     @Test
-    void loginReturnsTokenAndPersonalIdForValidCredentials() throws Exception {
-        Long tokenEsperado = 1731667200000L;
-        Personal empleado = new Personal(1L, "Ana García", "ana.garcia@ecoembes.es", "password123");
-
-        when(authService.login("ana.garcia@ecoembes.es", "password123")).thenReturn(tokenEsperado);
-        when(authService.validarToken(tokenEsperado)).thenReturn(empleado);
+    void loginReturnsTokenForValidCredentials() throws Exception {
 
         mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"ana.garcia@ecoembes.es\",\"password\":\"password123\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"ana@ecoembes.com\",\"password\":\"Ana1234!\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value(tokenEsperado))
-                .andExpect(jsonPath("$.idPersonal").value(1L));
+                .andExpect(jsonPath("$.token").exists())
+                .andExpect(jsonPath("$.idPersonal").value(1));
     }
 
     @Test
-    void loginRejectsInvalidCredentials() throws Exception {
-        when(authService.login("ana.garcia@ecoembes.es", "invalid"))
-                .thenThrow(new IllegalArgumentException("Credenciales incorrectas"));
+    void loginReturnsUnauthorizedForInvalidCredentials() throws Exception {
 
         mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"ana.garcia@ecoembes.es\",\"password\":\"invalid\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"ana@ecoembes.com\",\"password\":\"incorrecta\"}"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void logoutReturnsNoContentForValidToken() throws Exception {
-        Long tokenValido = 1731667200000L;
-        Personal empleado = new Personal(1L, "Ana García", "ana.garcia@ecoembes.es", "password123");
 
-        when(authService.validarToken(tokenValido)).thenReturn(empleado);
+        Long token = authService.login(
+                "ana@ecoembes.com", "Ana1234!");
 
         mockMvc.perform(post("/auth/logout")
-                        .param("token", String.valueOf(tokenValido)))
+                .param("token", String.valueOf(token)))
                 .andExpect(status().isNoContent());
-
-        verify(authService).logout(tokenValido);
     }
 
     @Test
-    void logoutRejectsUnknownToken() throws Exception {
-        Long tokenInvalido = 999999999L;
-
-        when(authService.validarToken(tokenInvalido))
-                .thenThrow(new SecurityException("Sesión no válida o cerrada"));
+    void logoutReturnsUnauthorizedForUnknownToken() throws Exception {
 
         mockMvc.perform(post("/auth/logout")
-                        .param("token", String.valueOf(tokenInvalido)))
+                .param("token", "999999999"))
                 .andExpect(status().isUnauthorized());
     }
 }
