@@ -285,7 +285,6 @@ public class DataInitializer {
             asignacionService.crear(asignacionBilbao);
 
             // Asignación de contenedores a la planta de Vitoria
-
             AsignacionDTO asignacionVitoria = new AsignacionDTO(
                     null,
                     plantaVitoria.getId(),
@@ -301,11 +300,6 @@ public class DataInitializer {
             asignacionService.crear(asignacionVitoria);
 
             logger.info("Asignaciones inicializadas.");
-
-            // --------------------------------------------------
-            // FIN DE LA INICIALIZACIÓN
-            // --------------------------------------------------
-
             logger.info("Datos de prueba de Ecoembes cargados correctamente.");
         };
     }
