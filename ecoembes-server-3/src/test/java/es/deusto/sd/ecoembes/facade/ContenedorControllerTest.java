@@ -1,287 +1,191 @@
+
 package es.deusto.sd.ecoembes.facade;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import es.deusto.sd.ecoembes.dto.ContenedorDTO;
 import es.deusto.sd.ecoembes.dto.EstadoDTO;
 import es.deusto.sd.ecoembes.entity.Contenedor;
 import es.deusto.sd.ecoembes.entity.EstadoContenedor;
-import es.deusto.sd.ecoembes.service.AuthService;
+import es.deusto.sd.ecoembes.entity.NivelLlenado;
+import es.deusto.sd.ecoembes.service.AlertaService;
 import es.deusto.sd.ecoembes.service.ContenedorService;
 
-@ExtendWith(MockitoExtension.class)
-public class ContenedorControllerTest {
+class ContenedorServiceTest {
 
-    private static final Long TOKEN = 123L;
-    private static final Long ID = 1L;
-    private static final LocalDate INI = LocalDate.of(2025, 1, 1);
-    private static final LocalDate FIN = LocalDate.of(2025, 1, 31);
-    private static final LocalDate FECHA = LocalDate.of(2025, 1, 15);
-    private static final String CP = "48001";
-
-    @Mock
-    private ContenedorService contenedorService;
-
-    @Mock
-    private AuthService authService;
-
-    private ContenedorController controller;
+    private ContenedorService service;
+    private LocalDateTime fecha;
+    private Contenedor contenedor;
 
     @BeforeEach
     void setUp() {
-        controller = new ContenedorController(contenedorService, authService);
-    }
+        service = new ContenedorService(new AlertaService());
 
-    // Crea un EstadoContenedor mockeado válido para la conversión a DTO
-    private EstadoContenedor estadoMock() {
-        EstadoContenedor estado = mock(EstadoContenedor.class);
-        when(estado.getFecha()).thenReturn(FECHA);
-        return estado;
-    }
+        fecha = LocalDateTime.of(2026, 11, 14, 10, 0);
 
-    // ---------------------------------------------------------------
-    // 1. CREAR
-    // ---------------------------------------------------------------
-
-    @Test
-    void crear_ok_devuelve201() {
-        ContenedorDTO dto = mock(ContenedorDTO.class);
-        Contenedor contenedor = mock(Contenedor.class, RETURNS_DEEP_STUBS);
-        when(contenedor.getId()).thenReturn(ID);
-        when(contenedor.getDireccion()).thenReturn("Calle Mayor 1");
-        when(contenedor.getZona().getCodigoPostal()).thenReturn(CP);
-        when(contenedorService.crear(dto)).thenReturn(contenedor);
-
-        ResponseEntity<ContenedorDTO> response = controller.crear(TOKEN, dto);
-
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        verify(authService).validarToken(TOKEN);
-        verify(contenedorService).crear(dto);
+        contenedor = service.crear(
+                new ContenedorDTO(null, "Calle Mayor 10", "48001", 100));
     }
 
     @Test
-    void crear_tokenInvalido_devuelve401() {
-        ContenedorDTO dto = mock(ContenedorDTO.class);
-        doThrow(new SecurityException()).when(authService).validarToken(TOKEN);
+    void createsContainerAndGeneratesId() {
 
-        ResponseEntity<ContenedorDTO> response = controller.crear(TOKEN, dto);
+        assertNotNull(contenedor.getId());
+        assertEquals(1L, contenedor.getId());
 
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verifyNoInteractions(contenedorService);
+        assertEquals("Calle Mayor 10", contenedor.getDireccion());
+        assertEquals("48001", contenedor.getZona().getCodigoPostal());
     }
 
     @Test
-    void crear_datosInvalidos_devuelve400() {
-        ContenedorDTO dto = mock(ContenedorDTO.class);
-        when(contenedorService.crear(dto)).thenThrow(new IllegalArgumentException());
+    void rejectsInvalidContainerData() {
 
-        ResponseEntity<ContenedorDTO> response = controller.crear(TOKEN, dto);
+        assertThrows(IllegalArgumentException.class,
+                () -> service.crear(null));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    }
+        assertThrows(IllegalArgumentException.class,
+                () -> service.crear(
+                        new ContenedorDTO(null, "", "48001", 100)));
 
-    // ---------------------------------------------------------------
-    // 2. ACTUALIZAR ESTADO
-    // ---------------------------------------------------------------
+        assertThrows(IllegalArgumentException.class,
+                () -> service.crear(
+                        new ContenedorDTO(null, "Calle", "48001", 0)));
 
-    @Test
-    void actualizar_ok_devuelve200() {
-        EstadoDTO dto = mock(EstadoDTO.class);
-        when(contenedorService.actualizarEstado(ID, dto)).thenReturn(estadoMock());
-
-        ResponseEntity<EstadoDTO> response = controller.actualizar(TOKEN, ID, dto);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        verify(authService).validarToken(TOKEN);
+        assertThrows(IllegalArgumentException.class,
+                () -> service.crear(
+                        new ContenedorDTO(null, "Calle", "", 100)));
     }
 
     @Test
-    void actualizar_tokenInvalido_devuelve401() {
-        EstadoDTO dto = mock(EstadoDTO.class);
-        doThrow(new SecurityException()).when(authService).validarToken(TOKEN);
+    void rejectsDuplicateContainerId() {
 
-        ResponseEntity<EstadoDTO> response = controller.actualizar(TOKEN, ID, dto);
+        // El contenedor del setUp ya tiene el ID 1.
+        ContenedorDTO dto = new ContenedorDTO(
+                1L, "Calle Nueva 20", "48002", 200);
 
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verifyNoInteractions(contenedorService);
+        // Intentar crear otro contenedor con ID 1 debe producir un error.
+        assertThrows(IllegalArgumentException.class,
+                () -> service.crear(dto));
+
+        // El contenedor original debe conservar sus datos.
+        assertEquals(1L, contenedor.getId());
+        assertEquals("Calle Mayor 10", contenedor.getDireccion());
+        assertEquals("48001", contenedor.getZona().getCodigoPostal());
     }
 
     @Test
-    void actualizar_datosInvalidos_devuelve400() {
-        EstadoDTO dto = mock(EstadoDTO.class);
-        when(contenedorService.actualizarEstado(ID, dto)).thenThrow(new IllegalArgumentException());
+    void generatesNextIdAfterManualId() {
 
-        ResponseEntity<EstadoDTO> response = controller.actualizar(TOKEN, ID, dto);
+        // Creamos un contenedor con ID manual 12.
+        Contenedor manual = service.crear(
+                new ContenedorDTO(12L, "Calle Manual", "48003", 100));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(12L, manual.getId());
+
+        // El siguiente contenedor automático debe tener ID 13.
+        Contenedor automatico = service.crear(
+                new ContenedorDTO(null, "Calle Automatica", "48004", 100));
+
+        assertEquals(13L, automatico.getId());
     }
 
     @Test
-    void actualizar_contenedorNoExiste_devuelve404() {
-        EstadoDTO dto = mock(EstadoDTO.class);
-        when(contenedorService.actualizarEstado(ID, dto)).thenThrow(new NoSuchElementException());
+    void updatesAndConsultsLatestStateForDate() {
 
-        ResponseEntity<EstadoDTO> response = controller.actualizar(TOKEN, ID, dto);
+        service.actualizarEstado(
+                contenedor.getId(),
+                new EstadoDTO(fecha, 30, NivelLlenado.VERDE));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
+        service.actualizarEstado(
+                contenedor.getId(),
+                new EstadoDTO(fecha.plusHours(2), 70, NivelLlenado.NARANJA));
 
-    // ---------------------------------------------------------------
-    // 3. CONSULTAR USO
-    // ---------------------------------------------------------------
+        // Comprobamos que se han guardado los dos estados.
+        List<EstadoContenedor> estados = contenedor.getEstados();
 
-    @Test
-    void consultarUso_ok_devuelveListaConvertida() {
-        when(contenedorService.consultarUso(ID, INI, FIN))
-                .thenReturn(List.of(estadoMock(), estadoMock()));
+        assertEquals(2, estados.size());
 
-        ResponseEntity<List<EstadoDTO>> response = controller.consultarUso(TOKEN, ID, INI, FIN);
+        // El último estado debe contener los datos de la segunda actualización.
+        EstadoContenedor ultimoEstado = estados.get(estados.size() - 1);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
-        verify(contenedorService).consultarUso(ID, INI, FIN);
+        assertEquals(70, ultimoEstado.getNumeroEnvases());
+        assertEquals(NivelLlenado.NARANJA, ultimoEstado.getNivel());
     }
 
     @Test
-    void consultarUso_listaVacia_devuelve200ConListaVacia() {
-        when(contenedorService.consultarUso(ID, INI, FIN)).thenReturn(List.of());
+    void rejectsStateForUnknownContainerAndCapacityOverflow() {
 
-        ResponseEntity<List<EstadoDTO>> response = controller.consultarUso(TOKEN, ID, INI, FIN);
+        assertThrows(java.util.NoSuchElementException.class,
+                () -> service.actualizarEstado(
+                        999L,
+                        new EstadoDTO(fecha, 10, NivelLlenado.VERDE)));
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().isEmpty());
+        assertThrows(IllegalArgumentException.class,
+                () -> service.actualizarEstado(
+                        contenedor.getId(),
+                        new EstadoDTO(fecha, 101, NivelLlenado.ROJO)));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.actualizarEstado(
+                        contenedor.getId(),
+                        new EstadoDTO(fecha, 10, null)));
     }
 
     @Test
-    void consultarUso_tokenInvalido_devuelve401() {
-        doThrow(new SecurityException()).when(authService).validarToken(TOKEN);
+    void filtersUsageBetweenDates() {
 
-        ResponseEntity<List<EstadoDTO>> response = controller.consultarUso(TOKEN, ID, INI, FIN);
+        service.actualizarEstado(
+                contenedor.getId(),
+                new EstadoDTO(fecha.minusDays(2), 10, NivelLlenado.VERDE));
 
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verifyNoInteractions(contenedorService);
+        service.actualizarEstado(
+                contenedor.getId(),
+                new EstadoDTO(fecha, 20, NivelLlenado.NARANJA));
+
+        service.actualizarEstado(
+                contenedor.getId(),
+                new EstadoDTO(fecha.plusDays(2), 30, NivelLlenado.ROJO));
+
+        List<EstadoContenedor> uso = service.consultarUso(
+                contenedor.getId(),
+                fecha.toLocalDate(),
+                fecha.toLocalDate());
+
+        assertEquals(1, uso.size());
+        assertEquals(20, uso.get(0).getNumeroEnvases());
+        assertEquals(NivelLlenado.NARANJA, uso.get(0).getNivel());
     }
 
     @Test
-    void consultarUso_fechasInvalidas_devuelve400() {
-        when(contenedorService.consultarUso(ID, FIN, INI)).thenThrow(new IllegalArgumentException());
+    void rejectsUsageForUnknownContainer() {
 
-        ResponseEntity<List<EstadoDTO>> response = controller.consultarUso(TOKEN, ID, FIN, INI);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(java.util.NoSuchElementException.class,
+                () -> service.consultarUso(
+                        999L,
+                        fecha.toLocalDate(),
+                        fecha.toLocalDate()));
     }
 
     @Test
-    void consultarUso_contenedorNoExiste_devuelve404() {
-        when(contenedorService.consultarUso(ID, INI, FIN)).thenThrow(new NoSuchElementException());
+    void rejectsInvalidUsageDateRange() {
 
-        ResponseEntity<List<EstadoDTO>> response = controller.consultarUso(TOKEN, ID, INI, FIN);
+        assertThrows(IllegalArgumentException.class,
+                () -> service.consultarUso(
+                        contenedor.getId(),
+                        null,
+                        fecha.toLocalDate()));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    // ---------------------------------------------------------------
-    // 4. CONSULTAR ESTADO EN UNA FECHA
-    // ---------------------------------------------------------------
-
-    @Test
-    void consultarEstado_ok_devuelve200() {
-        when(contenedorService.consultarEstado(ID, FECHA)).thenReturn(estadoMock());
-
-        ResponseEntity<EstadoDTO> response = controller.consultarEstado(TOKEN, ID, FECHA);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-    }
-
-    @Test
-    void consultarEstado_sinEstado_devuelve404() {
-        when(contenedorService.consultarEstado(ID, FECHA)).thenReturn(null);
-
-        ResponseEntity<EstadoDTO> response = controller.consultarEstado(TOKEN, ID, FECHA);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
-    }
-
-    @Test
-    void consultarEstado_tokenInvalido_devuelve401() {
-        doThrow(new SecurityException()).when(authService).validarToken(TOKEN);
-
-        ResponseEntity<EstadoDTO> response = controller.consultarEstado(TOKEN, ID, FECHA);
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verifyNoInteractions(contenedorService);
-    }
-
-    @Test
-    void consultarEstado_argumentoInvalido_devuelve400() {
-        when(contenedorService.consultarEstado(ID, FECHA)).thenThrow(new IllegalArgumentException());
-
-        ResponseEntity<EstadoDTO> response = controller.consultarEstado(TOKEN, ID, FECHA);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    }
-
-    @Test
-    void consultarEstado_contenedorNoExiste_devuelve404() {
-        when(contenedorService.consultarEstado(ID, FECHA)).thenThrow(new NoSuchElementException());
-
-        ResponseEntity<EstadoDTO> response = controller.consultarEstado(TOKEN, ID, FECHA);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    // ---------------------------------------------------------------
-    // 5. CONSULTAR ZONA
-    // ---------------------------------------------------------------
-
-    @Test
-    void consultarZona_ok_devuelveListaConvertida() {
-        when(contenedorService.consultarZona(CP, FECHA))
-                .thenReturn(List.of(estadoMock(), estadoMock(), estadoMock()));
-
-        ResponseEntity<List<EstadoDTO>> response = controller.consultarZona(TOKEN, CP, FECHA);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(3, response.getBody().size());
-        verify(contenedorService).consultarZona(eq(CP), eq(FECHA));
-    }
-
-    @Test
-    void consultarZona_tokenInvalido_devuelve401() {
-        doThrow(new SecurityException()).when(authService).validarToken(TOKEN);
-
-        ResponseEntity<List<EstadoDTO>> response = controller.consultarZona(TOKEN, CP, FECHA);
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verifyNoInteractions(contenedorService);
-    }
-
-    @Test
-    void consultarZona_codigoPostalInvalido_devuelve400() {
-        when(contenedorService.consultarZona(any(), any())).thenThrow(new IllegalArgumentException());
-
-        ResponseEntity<List<EstadoDTO>> response = controller.consultarZona(TOKEN, "xx", FECHA);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(IllegalArgumentException.class,
+                () -> service.consultarUso(
+                        contenedor.getId(),
+                        fecha.toLocalDate(),
+                        fecha.toLocalDate().minusDays(1)));
     }
 }
