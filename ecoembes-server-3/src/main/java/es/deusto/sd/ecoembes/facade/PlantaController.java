@@ -26,8 +26,8 @@ public class PlantaController {
 
     @GetMapping("/capacidades")
     public ResponseEntity<List<CapacidadDTO>> consultarCapacidades(
-            @RequestParam Long token,
-            @RequestParam LocalDate fecha) {
+            @RequestParam("token") Long token,
+            @RequestParam("fecha") LocalDate fecha) {
         try {
             authService.validarToken(token);
 
