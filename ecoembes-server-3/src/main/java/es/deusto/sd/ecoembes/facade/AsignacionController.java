@@ -1,3 +1,4 @@
+
 package es.deusto.sd.ecoembes.facade;
 
 import java.time.LocalDate;
@@ -26,7 +27,7 @@ public class AsignacionController {
 
     @PostMapping
     public ResponseEntity<AsignacionDTO> crear(
-            @RequestParam Long token,
+            @RequestParam("token") Long token,
             @RequestBody AsignacionDTO dto) {
         try {
             authService.validarToken(token);
@@ -43,8 +44,8 @@ public class AsignacionController {
 
     @GetMapping("/{id}")
     public ResponseEntity<AsignacionDTO> consultar(
-            @RequestParam Long token,
-            @PathVariable Long id) {
+            @RequestParam("token") Long token,
+            @PathVariable("id") Long id) {
         try {
             authService.validarToken(token);
             return ResponseEntity.ok(asignacionService.consultar(id));
@@ -58,10 +59,10 @@ public class AsignacionController {
 
     @GetMapping
     public ResponseEntity<List<AsignacionDTO>> consultarAsignaciones(
-            @RequestParam Long token,
-            @RequestParam Long idPlanta,
-            @RequestParam LocalDate ini,
-            @RequestParam LocalDate fin) {
+            @RequestParam("token") Long token,
+            @RequestParam("idPlanta") Long idPlanta,
+            @RequestParam("ini") LocalDate ini,
+            @RequestParam("fin") LocalDate fin) {
         try {
             authService.validarToken(token);
 
