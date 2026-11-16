@@ -52,24 +52,16 @@ public class DataInitializer {
             // --------------------------------------------------
 
             Personal ana = new Personal(
-                    1L,
-                    "Ana García",
-                    "ana@ecoembes.com",
-                    "Ana1234!"
+                    1L,"Ana García","ana@ecoembes.com","Ana1234!"
             );
 
             Personal iker = new Personal(
-                    2L,
-                    "Iker López",
-                    "iker@ecoembes.com",
-                    "Iker1234!"
+                    2L,"Iker López",
+                    "iker@ecoembes.com","Iker1234!"
             );
 
             Personal marta = new Personal(
-                    3L,
-                    "Marta Ruiz",
-                    "marta@ecoembes.com",
-                    "Marta1234!"
+                    3L,"Marta Ruiz", "marta@ecoembes.com","Marta1234!"
             );
 
             authService.addPersonal(ana);
@@ -82,18 +74,13 @@ public class DataInitializer {
             // 2. PLANTAS DE RECICLAJE Y CAPACIDADES
             // --------------------------------------------------
 
-            PlantaReciclaje plantaBilbao = new PlantaReciclaje(
-                    1L,
-                    "Polígono Industrial Asua, Bilbao",
-                    "48950",
-                    "Planta de Reciclaje de Bilbao"
+            PlantaReciclaje plantaBilbao = new PlantaReciclaje(1L,"Polígono Industrial Asua, Bilbao",
+            		"48950","Planta de Reciclaje de Bilbao"
             );
 
             PlantaReciclaje plantaVitoria = new PlantaReciclaje(
-                    2L,
-                    "Polígono Industrial Jundiz, Vitoria-Gasteiz",
-                    "01015",
-                    "Planta de Reciclaje de Vitoria"
+                    2L,"Polígono Industrial Jundiz, Vitoria-Gasteiz",
+                    "01015","Planta de Reciclaje de Vitoria"
             );
 
             // Capacidades de la planta de Bilbao
@@ -135,46 +122,27 @@ public class DataInitializer {
 
             var contenedor1 = contenedorService.crear(
                     new ContenedorDTO(
-                            null,
-                            "Calle Gran Vía 10",
-                            "48001",
-                            100
+                            null,"Calle Gran Vía 10","48001",100
                     )
             );
 
             var contenedor2 = contenedorService.crear(
-                    new ContenedorDTO(
-                            null,
-                            "Calle Diputación 15",
-                            "48001",
-                            120
+                    new ContenedorDTO(null,"Calle Diputación 15","48001",120
                     )
             );
 
             var contenedor3 = contenedorService.crear(
-                    new ContenedorDTO(
-                            null,
-                            "Calle Ercilla 20",
-                            "48009",
-                            150
+                    new ContenedorDTO(null,"Calle Ercilla 20","48009",150
                     )
             );
 
             var contenedor4 = contenedorService.crear(
-                    new ContenedorDTO(
-                            null,
-                            "Calle Dato 8",
-                            "01001",
-                            100
+                    new ContenedorDTO(null,"Calle Dato 8","01001",100
                     )
             );
 
             var contenedor5 = contenedorService.crear(
-                    new ContenedorDTO(
-                            null,
-                            "Avenida Gasteiz 25",
-                            "01005",
-                            130
+                    new ContenedorDTO(null,"Avenida Gasteiz 25","01005",130
                     )
             );
 
@@ -196,19 +164,15 @@ public class DataInitializer {
             // Contenedor 1
             contenedorService.actualizarEstado(
                     contenedor1.getId(),
-                    new EstadoDTO(
-                            ahora.minusDays(2),
-                            35,
-                            NivelLlenado.VERDE
+                    new EstadoDTO(ahora.minusDays(2),
+                            35,NivelLlenado.VERDE
                     )
             );
 
             contenedorService.actualizarEstado(
                     contenedor1.getId(),
                     new EstadoDTO(
-                            ahora,
-                            55,
-                            NivelLlenado.NARANJA
+                            ahora,55,NivelLlenado.NARANJA
                     )
             );
 
@@ -216,18 +180,14 @@ public class DataInitializer {
             contenedorService.actualizarEstado(
                     contenedor2.getId(),
                     new EstadoDTO(
-                            ahora.minusDays(1),
-                            40,
-                            NivelLlenado.VERDE
+                            ahora.minusDays(1),40,NivelLlenado.VERDE
                     )
             );
 
             contenedorService.actualizarEstado(
                     contenedor2.getId(),
                     new EstadoDTO(
-                            ahora,
-                            95,
-                            NivelLlenado.ROJO
+                            ahora,95,NivelLlenado.ROJO
                     )
             );
 
@@ -235,19 +195,15 @@ public class DataInitializer {
             contenedorService.actualizarEstado(
                     contenedor3.getId(),
                     new EstadoDTO(
-                            ahora,
-                            70,
-                            NivelLlenado.NARANJA
+                            ahora,70,NivelLlenado.NARANJA
                     )
             );
 
             // Contenedor 4
             contenedorService.actualizarEstado(
                     contenedor4.getId(),
-                    new EstadoDTO(
-                            ahora,
-                            20,
-                            NivelLlenado.VERDE
+                    new EstadoDTO(ahora,
+                            20,NivelLlenado.VERDE
                     )
             );
 
@@ -255,9 +211,7 @@ public class DataInitializer {
             contenedorService.actualizarEstado(
                     contenedor5.getId(),
                     new EstadoDTO(
-                            ahora,
-                            115,
-                            NivelLlenado.NARANJA
+                            ahora,115,NivelLlenado.NARANJA
                     )
             );
 
@@ -272,14 +226,10 @@ public class DataInitializer {
             AsignacionDTO asignacionBilbao = new AsignacionDTO(
                     null,
                     plantaBilbao.getId(),
-                    Arrays.asList(
-                            contenedor1.getId(),
-                            contenedor2.getId(),
+                    Arrays.asList(contenedor1.getId(),contenedor2.getId(),
                             contenedor3.getId()
                     ),
-                    hoy,
-                    0,
-                    ana.getId()
+                    hoy,0,ana.getId()
             );
 
             asignacionService.crear(asignacionBilbao);
@@ -288,13 +238,8 @@ public class DataInitializer {
             AsignacionDTO asignacionVitoria = new AsignacionDTO(
                     null,
                     plantaVitoria.getId(),
-                    Arrays.asList(
-                            contenedor4.getId(),
-                            contenedor5.getId()
-                    ),
-                    hoy,
-                    0,
-                    iker.getId()
+                    Arrays.asList(contenedor4.getId(),contenedor5.getId()
+                    ),hoy,0,iker.getId()
             );
 
             asignacionService.crear(asignacionVitoria);
