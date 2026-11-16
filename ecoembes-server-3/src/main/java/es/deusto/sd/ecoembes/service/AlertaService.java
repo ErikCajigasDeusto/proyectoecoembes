@@ -29,27 +29,28 @@ public class AlertaService {
             return estadoActual;
         }
 
-        int contenedoresEnNaranja = 0;
+        int contenedoresSaturados = 0;
         for (Contenedor contenedor : contenedoresMonitorizados.values()) {
             List<EstadoContenedor> historial = contenedor.getEstados();
             // Comprobación de que el historial no sea nulo y tenga al menos un estado
             if (historial != null && !historial.isEmpty()) {
                 EstadoContenedor ultimoEstado = historial.get(historial.size() - 1);
-                if (ultimoEstado.getNivel() == NivelLlenado.NARANJA) {
-                    contenedoresEnNaranja++;
+                if (ultimoEstado.getNivel() == NivelLlenado.NARANJA
+                        || ultimoEstado.getNivel() == NivelLlenado.ROJO) {
+                	contenedoresSaturados++;
                 }
             }
         }
 
-        double porcentajeSaturacion = (contenedoresEnNaranja * 100.0) / totalContenedores;
+        double porcentajeSaturacion = (contenedoresSaturados * 100.0) / totalContenedores;
         boolean alertaActiva = porcentajeSaturacion > 80.0;
         boolean alertaAnterior = estadoActual.isAlertaActiva();
 
-        estadoActual = new SaturacionDTO(porcentajeSaturacion, contenedoresEnNaranja, alertaActiva);
+        estadoActual = new SaturacionDTO(porcentajeSaturacion, contenedoresSaturados, alertaActiva);
 
         // Solo notificar cuando la alerta pasa de inactiva a activa
         if (alertaActiva && !alertaAnterior) {
-            System.out.println("[ALERTA SATURACIÓN] Se ha superado el 80 % de contenedores en nivel NARANJA ("
+            System.out.println("[ALERTA SATURACIÓN] Se ha superado el 80 % de contenedores en nivel alto (NARANJA/ROJO) ("
                     + String.format("%.2f", porcentajeSaturacion) + "%). Notificando al personal de Ecoembes...");
         }
 

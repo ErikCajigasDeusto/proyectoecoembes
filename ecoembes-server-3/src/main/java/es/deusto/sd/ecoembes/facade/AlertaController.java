@@ -22,7 +22,7 @@ public class AlertaController {
     }
 
     @GetMapping
-    public ResponseEntity<SaturacionDTO> consultarSaturacion( @RequestParam Long token) {
+    public ResponseEntity<SaturacionDTO> consultarSaturacion(@RequestParam("token") Long token) {
         try {
             authService.validarToken(token);
             return ResponseEntity.ok(alertaService.consultarSaturacion());
@@ -33,7 +33,7 @@ public class AlertaController {
     }
 
     @PostMapping("/evaluar")
-    public ResponseEntity<SaturacionDTO> evaluarSaturacion( @RequestParam Long token) {
+    public ResponseEntity<SaturacionDTO> evaluarSaturacion(@RequestParam("token") Long token) {
         try {
             authService.validarToken(token);
             return ResponseEntity.ok(alertaService.evaluarSaturacion());
