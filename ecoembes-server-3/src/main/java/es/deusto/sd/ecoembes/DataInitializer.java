@@ -56,8 +56,8 @@ public class DataInitializer {
             );
 
             Personal iker = new Personal(
-                    2L,"Iker López",
-                    "iker@ecoembes.com","Iker1234!"
+                    2L,"Ofelia Tonelaje",
+                    "a","1"
             );
 
             Personal marta = new Personal(
@@ -164,7 +164,7 @@ public class DataInitializer {
             // Contenedor 1
             contenedorService.actualizarEstado(
                     contenedor1.getId(),
-                    new EstadoDTO(ahora.minusDays(2),
+                    new EstadoDTO(ahora,
                             35,NivelLlenado.VERDE
                     )
             );
