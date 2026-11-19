@@ -42,7 +42,7 @@ public class DataInitializer {
             PlantaService plantaService,
             AsignacionService asignacionService) {
 
-        return _ -> {
+        return args -> {
 
             LocalDate hoy = LocalDate.now();
             LocalDateTime ahora = LocalDateTime.now();

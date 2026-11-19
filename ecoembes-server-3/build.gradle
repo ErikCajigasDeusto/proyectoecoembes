@@ -9,10 +9,19 @@ plugins {
 }
 
 group = 'es.deusto.sd.ecoembes'
-version = '1.0'
+version = '2.0'
+
+// Latest stable maintenance release in the Hibernate 7.4 series used by Boot 4.1.
+ext['hibernate.version'] = '7.4.12.Final'
 
 repositories {
 	mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 dependencies {
@@ -21,13 +30,23 @@ dependencies {
 
 	// SpringDoc OpenAPI UI Dependency this is needed to use Swagger annotations
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1'
+    
+	// Spring Boot Starter Data JPA for working with JPA and Hibernate
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'	
 
-	// Latest stable Commons Codec; explicitly overrides Spring Boot's managed version.
-    implementation 'commons-codec:commons-codec:1.22.1'
+	// H2 file database (in-memory databases are used in tests)
+	runtimeOnly 'com.h2database:h2:2.5.252'
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// H2 web console (moved to its own module in Spring Boot 4)
+	implementation 'org.springframework.boot:spring-boot-h2console'
+
+	// Latest stable Commons Codec, explicitly overriding Spring Boot's managed version.
+	implementation 'commons-codec:commons-codec:1.22.1'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+	useJUnitPlatform()
 }
