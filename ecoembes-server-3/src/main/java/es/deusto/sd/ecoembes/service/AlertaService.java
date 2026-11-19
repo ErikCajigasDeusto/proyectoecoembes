@@ -1,60 +1,55 @@
 package es.deusto.sd.ecoembes.service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
 
-import es.deusto.sd.ecoembes.dto.SaturacionDTO;
 import es.deusto.sd.ecoembes.entity.Contenedor;
 import es.deusto.sd.ecoembes.entity.EstadoContenedor;
 import es.deusto.sd.ecoembes.entity.NivelLlenado;
 
 @Service
 public class AlertaService {
-	
-	// Almacén en memoria del servidor (Prototipo 1)
+
+    // Almacén en memoria del servidor (Prototipo 1)
     private final Map<Long, Contenedor> contenedoresMonitorizados = new ConcurrentHashMap<>();
-    private SaturacionDTO estadoActual = new SaturacionDTO(0.0, 0, false);
+    private boolean alertaActiva = false;
 
-    public SaturacionDTO consultarSaturacion() {
-        return estadoActual;
-    }
-
-    public SaturacionDTO evaluarSaturacion() {
+    public void evaluarSaturacion() {
         int totalContenedores = contenedoresMonitorizados.size();
         if (totalContenedores == 0) {
-            estadoActual = new SaturacionDTO(0.0, 0, false);
-            return estadoActual;
+            alertaActiva = false;
+            return;
         }
 
         int contenedoresSaturados = 0;
         for (Contenedor contenedor : contenedoresMonitorizados.values()) {
             List<EstadoContenedor> historial = contenedor.getEstados();
-            // Comprobación de que el historial no sea nulo y tenga al menos un estado
             if (historial != null && !historial.isEmpty()) {
-                EstadoContenedor ultimoEstado = historial.get(historial.size() - 1);
-                if (ultimoEstado.getNivel() == NivelLlenado.NARANJA
-                        || ultimoEstado.getNivel() == NivelLlenado.ROJO) {
-                	contenedoresSaturados++;
+                EstadoContenedor ultimoEstado = historial.stream()
+                        .max(Comparator.comparing(EstadoContenedor::getFecha))
+                        .orElse(null);
+
+                if (ultimoEstado != null && (ultimoEstado.getNivel() == NivelLlenado.NARANJA
+                        || ultimoEstado.getNivel() == NivelLlenado.ROJO)) {
+                    contenedoresSaturados++;
                 }
             }
         }
 
         double porcentajeSaturacion = (contenedoresSaturados * 100.0) / totalContenedores;
-        boolean alertaActiva = porcentajeSaturacion > 80.0;
-        boolean alertaAnterior = estadoActual.isAlertaActiva();
-
-        estadoActual = new SaturacionDTO(porcentajeSaturacion, contenedoresSaturados, alertaActiva);
+        boolean nuevaAlertaActiva = porcentajeSaturacion > 80.0;
 
         // Solo notificar cuando la alerta pasa de inactiva a activa
-        if (alertaActiva && !alertaAnterior) {
+        if (nuevaAlertaActiva && !alertaActiva) {
             System.out.println("[ALERTA SATURACIÓN] Se ha superado el 80 % de contenedores en nivel alto (NARANJA/ROJO) ("
-                    + String.format("%.2f", porcentajeSaturacion) + "%). Notificando al personal de Ecoembes...");
+                    + String.format("%.2f", porcentajeSaturacion) + "%). Notificando por correo al personal de Ecoembes...");
         }
 
-        return estadoActual;
+        alertaActiva = nuevaAlertaActiva;
     }
 
     public void registrarContenedor(Contenedor contenedor) {

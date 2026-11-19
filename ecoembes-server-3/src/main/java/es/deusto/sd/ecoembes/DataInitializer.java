@@ -42,7 +42,7 @@ public class DataInitializer {
             PlantaService plantaService,
             AsignacionService asignacionService) {
 
-        return args -> {
+        return _ -> {
 
             LocalDate hoy = LocalDate.now();
             LocalDateTime ahora = LocalDateTime.now();
@@ -55,7 +55,7 @@ public class DataInitializer {
                     1L,"Ana García","ana@ecoembes.com","Ana1234!"
             );
 
-            Personal iker = new Personal(
+            Personal ofelia = new Personal(
                     2L,"Ofelia Tonelaje",
                     "a","1"
             );
@@ -65,7 +65,7 @@ public class DataInitializer {
             );
 
             authService.addPersonal(ana);
-            authService.addPersonal(iker);
+            authService.addPersonal(ofelia);
             authService.addPersonal(marta);
 
             logger.info("Personal de prueba inicializado.");
@@ -113,7 +113,7 @@ public class DataInitializer {
             asignacionService.addPlanta(plantaVitoria);
 
             asignacionService.addPersonal(ana);
-            asignacionService.addPersonal(iker);
+            asignacionService.addPersonal(ofelia);
             asignacionService.addPersonal(marta);
 
             // --------------------------------------------------
@@ -246,7 +246,7 @@ public class DataInitializer {
                     null,
                     plantaVitoria.getId(),
                     Arrays.asList(contenedor4.getId(),contenedor5.getId()
-                    ),hoy,0,iker.getId()
+                    ),hoy,0,ofelia.getId()
             );
 
             asignacionService.crear(asignacionVitoria);
