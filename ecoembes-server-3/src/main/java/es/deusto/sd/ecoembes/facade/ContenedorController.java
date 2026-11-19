@@ -81,9 +81,9 @@ public class ContenedorController {
     public ResponseEntity<List<EstadoDTO>> consultarUso(
             @RequestParam("token") Long token,
             @PathVariable("id") Long id,
-            @RequestParam("ini")
+            @RequestParam(value = "ini", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ini,
-            @RequestParam("fin")
+            @RequestParam(value = "fin", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin) {
         try {
             authService.validarToken(token);
@@ -138,22 +138,18 @@ public class ContenedorController {
     }
 
     // 5. CONSULTAR LOS ESTADOS DE UNA ZONA EN UNA FECHA
+ // 5. CONSULTAR LOS ESTADOS DE UNA ZONA EN UNA FECHA
     @GetMapping("/zona")
-    public ResponseEntity<List<EstadoDTO>> consultarZona(
+    public ResponseEntity<?> consultarZona(
             @RequestParam("token") Long token,
-            @RequestParam("cp") String cp,
-            @RequestParam("fecha")
+            @RequestParam(value = "cp", required = false) String cp,
+            @RequestParam(value = "fecha", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
         try {
             authService.validarToken(token);
 
-            List<EstadoDTO> resultado = contenedorService
-                    .consultarZona(cp, fecha)
-                    .stream()
-                    .map(this::convertirEstadoADTO)
-                    .collect(Collectors.toList());
-
-            return ResponseEntity.ok(resultado);
+            return ResponseEntity.ok(
+                    contenedorService.consultarZona(cp, fecha));
 
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

@@ -174,69 +174,103 @@ public class ContenedorService {
         return resultado;
     }
 
-    public List<EstadoContenedor> consultarUso(
-            Long id,
-            LocalDate ini,
-            LocalDate fin) {
 
-        if (ini == null || fin == null || ini.isAfter(fin)) {
-            throw new IllegalArgumentException(
-                    "Rango de fechas inválido");
-        }
+public List<EstadoContenedor> consultarUso(
+        Long id,
+        LocalDate ini,
+        LocalDate fin) {
 
-        Contenedor contenedor = contenedores.get(id);
-
-        if (contenedor == null) {
-            throw new NoSuchElementException(
-                    "No existe el contenedor con id: " + id);
-        }
-
-        List<EstadoContenedor> resultado = new ArrayList<>();
-
-        for (EstadoContenedor estado : contenedor.getEstados()) {
-
-            LocalDate fechaEstado = estado.getFecha().toLocalDate();
-
-            if (!fechaEstado.isBefore(ini)
-                    && !fechaEstado.isAfter(fin)) {
-
-                resultado.add(estado);
-            }
-        }
-
-        return resultado;
+    // Comprobamos que el rango de fechas sea válido
+    // únicamente cuando se han proporcionado ambas fechas.
+    if (ini != null && fin != null && ini.isAfter(fin)) {
+        throw new IllegalArgumentException(
+                "La fecha de inicio no puede ser posterior a la fecha de fin");
     }
 
-    public List<EstadoContenedor> consultarZona(
-            String codigoPostal,
-            LocalDate fecha) {
+    // Buscamos el contenedor
+    Contenedor contenedor = contenedores.get(id);
 
-        if (codigoPostal == null
-                || codigoPostal.isBlank()
-                || fecha == null) {
+    if (contenedor == null) {
+        throw new NoSuchElementException(
+                "No existe el contenedor con id: " + id);
+    }
 
-            throw new IllegalArgumentException(
-                    "Código postal y fecha son obligatorios");
+    List<EstadoContenedor> resultado = new ArrayList<>();
+
+    // Recorremos todos los estados del contenedor
+    for (EstadoContenedor estado : contenedor.getEstados()) {
+
+        LocalDate fechaEstado = estado.getFecha().toLocalDate();
+
+        // Comprobamos la fecha de inicio si existe
+        boolean cumpleInicio = (ini == null)
+                || !fechaEstado.isBefore(ini);
+
+        // Comprobamos la fecha de fin si existe
+        boolean cumpleFin = (fin == null)
+                || !fechaEstado.isAfter(fin);
+
+        // Añadimos el estado si cumple ambos límites
+        if (cumpleInicio && cumpleFin) {
+            resultado.add(estado);
         }
+    }
+
+    return resultado;
+}
+
+
+
+public List<EstadoContenedor> consultarZona(
+        String codigoPostal,
+        LocalDate fecha) {
+
+    List<EstadoContenedor> resultado = new ArrayList<>();
+
+    // Si no se indica fecha, utilizamos la fecha actual.
+    LocalDate fechaConsulta = (fecha != null)
+            ? fecha
+            : LocalDate.now();
+
+    // Si se indica código postal, buscamos únicamente esa zona.
+    if (codigoPostal != null && !codigoPostal.isBlank()) {
 
         Zona zona = zonas.get(codigoPostal);
 
+        // Si el código postal no existe, devolvemos una lista vacía.
         if (zona == null) {
-            return new ArrayList<>();
+            return resultado;
         }
 
-        List<EstadoContenedor> resultado = new ArrayList<>();
-
+        // Consultamos el estado de cada contenedor de esa zona.
         for (Contenedor contenedor : zona.getContenedores()) {
 
             EstadoContenedor estado =
-                    consultarEstado(contenedor.getId(), fecha);
+                    consultarEstado(contenedor.getId(), fechaConsulta);
 
             if (estado != null) {
                 resultado.add(estado);
             }
         }
 
-        return resultado;
+    } else {
+
+        // Si no se indica código postal, recorremos todas las zonas.
+        for (Zona zona : zonas.values()) {
+
+            for (Contenedor contenedor : zona.getContenedores()) {
+
+                EstadoContenedor estado =
+                        consultarEstado(contenedor.getId(), fechaConsulta);
+
+                if (estado != null) {
+                    resultado.add(estado);
+                }
+            }
+        }
     }
+
+    return resultado;
+}
+
 }

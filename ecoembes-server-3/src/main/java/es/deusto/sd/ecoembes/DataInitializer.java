@@ -172,7 +172,14 @@ public class DataInitializer {
             contenedorService.actualizarEstado(
                     contenedor1.getId(),
                     new EstadoDTO(
-                            ahora,55,NivelLlenado.NARANJA
+                            ahora.plusDays(5),55,NivelLlenado.NARANJA
+                    )
+            );
+            
+            contenedorService.actualizarEstado(
+                    contenedor1.getId(),
+                    new EstadoDTO(
+                            ahora.minusDays(2),55,NivelLlenado.NARANJA
                     )
             );
 
