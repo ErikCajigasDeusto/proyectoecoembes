@@ -32,7 +32,7 @@ public class AuthController {
             Personal personal = authService.validarToken(token);
 
             LoginResponseDTO respuesta =
-                    new LoginResponseDTO(token, personal.getId());
+                    new LoginResponseDTO(token, personal.getNombre());
 
             return ResponseEntity.ok(respuesta);
 

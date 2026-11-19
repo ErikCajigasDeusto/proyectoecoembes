@@ -3,14 +3,14 @@ package es.deusto.sd.ecoembes.dto;
 public class LoginResponseDTO {
 
     private Long token;
-    private Long idPersonal;
+    private String nombre;
 
     public LoginResponseDTO() {
     }
 
-    public LoginResponseDTO(Long token, Long idPersonal) {
+    public LoginResponseDTO(Long token, String nombre) {
         this.token = token;
-        this.idPersonal = idPersonal;
+        this.nombre= nombre;
     }
 
     public Long getToken() {
@@ -20,12 +20,13 @@ public class LoginResponseDTO {
     public void setToken(Long token) {
         this.token = token;
     }
-
-    public Long getIdPersonal() {
-        return idPersonal;
-    }
-
-    public void setIdPersonal(Long idPersonal) {
-        this.idPersonal = idPersonal;
+    
+    public String getNombre() {
+		return nombre;
+	}
+    
+    public void setNombre(String nombre) {
+    			this.nombre = nombre;
+    			
     }
 }
