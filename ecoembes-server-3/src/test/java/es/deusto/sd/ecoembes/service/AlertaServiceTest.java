@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +14,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import es.deusto.sd.ecoembes.dto.SaturacionDTO;
 import es.deusto.sd.ecoembes.entity.Contenedor;
 import es.deusto.sd.ecoembes.entity.EstadoContenedor;
 import es.deusto.sd.ecoembes.entity.NivelLlenado;
@@ -40,12 +40,15 @@ class AlertaServiceTest {
 
     // ---------- Métodos auxiliares ----------
 
-    /** Crea un contenedor simulado cuyo historial tiene los niveles indicados, en orden. */
+    /** Crea un contenedor simulado cuyo historial tiene los niveles indicados, con fechas crecientes. */
     private Contenedor crearContenedor(Long id, NivelLlenado... niveles) {
         List<EstadoContenedor> historial = new ArrayList<>();
-        for (NivelLlenado nivel : niveles) {
+        LocalDateTime fechaBase = LocalDateTime.of(2026, 11, 19, 10, 0);
+
+        for (int i = 0; i < niveles.length; i++) {
             EstadoContenedor estado = mock(EstadoContenedor.class);
-            when(estado.getNivel()).thenReturn(nivel);
+            when(estado.getNivel()).thenReturn(niveles[i]);
+            when(estado.getFecha()).thenReturn(fechaBase.plusMinutes(i));
             historial.add(estado);
         }
         return crearContenedorConHistorial(id, historial);
@@ -80,33 +83,12 @@ class AlertaServiceTest {
         return count;
     }
 
-    // ---------- consultarSaturacion ----------
-
-    @Test
-    void consultarSaturacion_estadoInicial_esCeroYSinAlerta() {
-        SaturacionDTO dto = alertaService.consultarSaturacion();
-
-        assertNotNull(dto);
-        assertFalse(dto.isAlertaActiva());
-    }
-
-    @Test
-    void consultarSaturacion_devuelveElUltimoEstadoEvaluado() {
-        registrarContenedores(5, 0);
-
-        SaturacionDTO evaluado = alertaService.evaluarSaturacion();
-        SaturacionDTO consultado = alertaService.consultarSaturacion();
-
-        assertSame(evaluado, consultado);
-    }
-
     // ---------- evaluarSaturacion: casos límite ----------
 
     @Test
     void evaluarSaturacion_sinContenedores_noHayAlerta() {
-        SaturacionDTO dto = alertaService.evaluarSaturacion();
+        alertaService.evaluarSaturacion();
 
-        assertFalse(dto.isAlertaActiva());
         assertEquals(0, contarAlertasImpresas());
     }
 
@@ -114,9 +96,17 @@ class AlertaServiceTest {
     void evaluarSaturacion_todosNaranja_activaAlerta() {
         registrarContenedores(5, 0);
 
-        SaturacionDTO dto = alertaService.evaluarSaturacion();
+        alertaService.evaluarSaturacion();
 
-        assertTrue(dto.isAlertaActiva());
+        assertEquals(1, contarAlertasImpresas());
+    }
+
+    @Test
+    void evaluarSaturacion_todosRojo_activaAlerta() {
+        alertaService.registrarContenedor(crearContenedor(1L, NivelLlenado.ROJO));
+
+        alertaService.evaluarSaturacion();
+
         assertEquals(1, contarAlertasImpresas());
     }
 
@@ -124,9 +114,8 @@ class AlertaServiceTest {
     void evaluarSaturacion_ningunoNaranja_noActivaAlerta() {
         registrarContenedores(0, 5);
 
-        SaturacionDTO dto = alertaService.evaluarSaturacion();
+        alertaService.evaluarSaturacion();
 
-        assertFalse(dto.isAlertaActiva());
         assertEquals(0, contarAlertasImpresas());
     }
 
@@ -135,9 +124,8 @@ class AlertaServiceTest {
         // 4 de 5 = 80 % -> la condición es estrictamente mayor que 80
         registrarContenedores(4, 1);
 
-        SaturacionDTO dto = alertaService.evaluarSaturacion();
+        alertaService.evaluarSaturacion();
 
-        assertFalse(dto.isAlertaActiva());
         assertEquals(0, contarAlertasImpresas());
     }
 
@@ -146,47 +134,45 @@ class AlertaServiceTest {
         // 5 de 6 = 83,33 %
         registrarContenedores(5, 1);
 
-        SaturacionDTO dto = alertaService.evaluarSaturacion();
+        alertaService.evaluarSaturacion();
 
-        assertTrue(dto.isAlertaActiva());
         assertEquals(1, contarAlertasImpresas());
     }
 
     // ---------- evaluarSaturacion: lectura del historial ----------
 
     @Test
-    void evaluarSaturacion_soloCuentaElUltimoEstadoDelHistorial() {
-        // Estuvo en NARANJA pero el último estado es VERDE -> no cuenta
+    void evaluarSaturacion_soloCuentaElEstadoMasRecienteDelHistorial() {
+        // Estuvo en NARANJA pero el más reciente es VERDE -> no cuenta
         alertaService.registrarContenedor(
                 crearContenedor(1L, NivelLlenado.NARANJA, NivelLlenado.VERDE));
-        // Estuvo en VERDE pero el último estado es NARANJA -> cuenta
+        // Estuvo en VERDE pero el más reciente es NARANJA -> cuenta
         alertaService.registrarContenedor(
                 crearContenedor(2L, NivelLlenado.VERDE, NivelLlenado.NARANJA));
 
-        SaturacionDTO dto = alertaService.evaluarSaturacion();
+        alertaService.evaluarSaturacion();
 
         // 1 de 2 = 50 % -> sin alerta
-        assertFalse(dto.isAlertaActiva());
+        assertEquals(0, contarAlertasImpresas());
     }
 
     @Test
-    void evaluarSaturacion_historialVacio_noCuentaComoNaranja() {
+    void evaluarSaturacion_historialVacio_noCuentaComoSaturado() {
         alertaService.registrarContenedor(crearContenedor(1L)); // historial vacío
         alertaService.registrarContenedor(crearContenedor(2L, NivelLlenado.NARANJA));
 
-        SaturacionDTO dto = alertaService.evaluarSaturacion();
+        alertaService.evaluarSaturacion();
 
         // 1 de 2 = 50 % -> sin alerta
-        assertFalse(dto.isAlertaActiva());
+        assertEquals(0, contarAlertasImpresas());
     }
 
     @Test
     void evaluarSaturacion_historialNulo_noLanzaExcepcionNiCuenta() {
         alertaService.registrarContenedor(crearContenedorConHistorial(1L, null));
 
-        SaturacionDTO dto = assertDoesNotThrow(() -> alertaService.evaluarSaturacion());
-
-        assertFalse(dto.isAlertaActiva());
+        assertDoesNotThrow(() -> alertaService.evaluarSaturacion());
+        assertEquals(0, contarAlertasImpresas());
     }
 
     // ---------- evaluarSaturacion: notificaciones ----------
@@ -204,18 +190,19 @@ class AlertaServiceTest {
 
     @Test
     void evaluarSaturacion_alertaSeDesactivaYVuelveAActivarse_notificaDosVeces() {
-        // Fase 1: todos naranja -> alerta
+        // Fase 1: todos naranja -> salta 1ª alerta
         alertaService.registrarContenedor(crearContenedor(1L, NivelLlenado.NARANJA));
-        assertTrue(alertaService.evaluarSaturacion().isAlertaActiva());
+        alertaService.evaluarSaturacion();
+        assertEquals(1, contarAlertasImpresas());
 
-        // Fase 2: el contenedor pasa a VERDE (se sobrescribe por id) -> alerta desactivada
+        // Fase 2: el contenedor pasa a VERDE -> alerta desactivada (no imprime nueva alerta)
         alertaService.registrarContenedor(crearContenedor(1L, NivelLlenado.VERDE));
-        assertFalse(alertaService.evaluarSaturacion().isAlertaActiva());
+        alertaService.evaluarSaturacion();
+        assertEquals(1, contarAlertasImpresas());
 
-        // Fase 3: vuelve a NARANJA -> nueva alerta
+        // Fase 3: vuelve a NARANJA -> salta 2ª alerta
         alertaService.registrarContenedor(crearContenedor(1L, NivelLlenado.NARANJA));
-        assertTrue(alertaService.evaluarSaturacion().isAlertaActiva());
-
+        alertaService.evaluarSaturacion();
         assertEquals(2, contarAlertasImpresas());
     }
 
@@ -236,24 +223,27 @@ class AlertaServiceTest {
     @Test
     void registrarContenedor_nulo_seIgnora() {
         assertDoesNotThrow(() -> alertaService.registrarContenedor(null));
+        alertaService.evaluarSaturacion();
 
-        assertFalse(alertaService.evaluarSaturacion().isAlertaActiva());
+        assertEquals(0, contarAlertasImpresas());
     }
 
     @Test
     void registrarContenedor_conIdNulo_seIgnora() {
         // Si se hubiera registrado, sería 1 de 1 en NARANJA = 100 % y saltaría la alerta
         alertaService.registrarContenedor(crearContenedor(null, NivelLlenado.NARANJA));
+        alertaService.evaluarSaturacion();
 
-        assertFalse(alertaService.evaluarSaturacion().isAlertaActiva());
+        assertEquals(0, contarAlertasImpresas());
     }
 
     @Test
     void registrarContenedor_mismoId_sobrescribeAlAnterior() {
         alertaService.registrarContenedor(crearContenedor(1L, NivelLlenado.VERDE));
         alertaService.registrarContenedor(crearContenedor(1L, NivelLlenado.NARANJA));
+        alertaService.evaluarSaturacion();
 
         // Si se hubieran acumulado serían 2 contenedores (50 %); sobrescrito es 1 de 1 (100 %)
-        assertTrue(alertaService.evaluarSaturacion().isAlertaActiva());
+        assertEquals(1, contarAlertasImpresas());
     }
 }
