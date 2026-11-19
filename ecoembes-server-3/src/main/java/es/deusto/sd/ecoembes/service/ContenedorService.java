@@ -1,4 +1,3 @@
-
 package es.deusto.sd.ecoembes.service;
 
 import java.time.LocalDate;
@@ -32,45 +31,19 @@ public class ContenedorService {
     }
 
     public Contenedor crear(ContenedorDTO dto) {
-
         if (dto == null
                 || dto.getCodigoPostal() == null
                 || dto.getCodigoPostal().isBlank()
                 || dto.getDireccion() == null
                 || dto.getDireccion().isBlank()
                 || dto.getCapacidadInicial() <= 0) {
-
-            throw new IllegalArgumentException(
-                    "Datos del contenedor inválidos");
+            throw new IllegalArgumentException("Datos del contenedor inválidos");
         }
 
-        Long id;
-
-        // Si se proporciona un ID manual, comprobamos que no exista.
-        if (dto.getId() != null) {
-
-            id = dto.getId();
-
-            if (contenedores.containsKey(id)) {
-                throw new IllegalArgumentException(
-                        "Ya existe un contenedor con id: " + id);
-            }
-
-            // El siguiente ID automático será mayor que el manual.
-            if (id >= siguienteIdContenedor) {
-                siguienteIdContenedor = id + 1;
-            }
-
-        } else {
-
-            // Generamos automáticamente el siguiente ID.
-            id = siguienteIdContenedor++;
-        }
-
+        Long id = siguienteIdContenedor++;
         String cp = dto.getCodigoPostal();
 
         Zona zona = zonas.get(cp);
-
         if (zona == null) {
             zona = new Zona(siguienteIdZona++, cp);
             zonas.put(cp, zona);
@@ -83,194 +56,122 @@ public class ContenedorService {
                 zona);
 
         zona.getContenedores().add(contenedor);
-
         contenedores.put(id, contenedor);
 
+        // Registra el contenedor en el servicio interno de alertas
         alertaService.registrarContenedor(contenedor);
 
         return contenedor;
     }
 
     public Contenedor obtenerPorId(Long id) {
-
         Contenedor contenedor = contenedores.get(id);
-
         if (contenedor == null) {
-            throw new NoSuchElementException(
-                    "No existe el contenedor con id: " + id);
+            throw new NoSuchElementException("No existe el contenedor con id: " + id);
         }
-
         return contenedor;
     }
 
     public EstadoContenedor actualizarEstado(Long id, EstadoDTO dto) {
-
         if (dto == null
                 || dto.getNivel() == null
                 || dto.getNumeroEnvases() < 0) {
-
-            throw new IllegalArgumentException(
-                    "Datos de estado inválidos");
+            throw new IllegalArgumentException("Datos de estado inválidos");
         }
 
         Contenedor contenedor = contenedores.get(id);
-
         if (contenedor == null) {
-            throw new NoSuchElementException(
-                    "No existe el contenedor con id: " + id);
+            throw new NoSuchElementException("No existe el contenedor con id: " + id);
         }
 
         if (dto.getNumeroEnvases() > contenedor.getCapacidadInicial()) {
-            throw new IllegalArgumentException(
-                    "El número de envases supera la capacidad del contenedor");
+            throw new IllegalArgumentException("El número de envases supera la capacidad del contenedor");
         }
 
-        contenedor.actualizarEstado(
-                dto.getNumeroEnvases(),
-                dto.getNivel());
+        contenedor.actualizarEstado(dto.getNumeroEnvases(), dto.getNivel());
 
         List<EstadoContenedor> historial = contenedor.getEstados();
-
-        EstadoContenedor ultimoEstado =
-                historial.get(historial.size() - 1);
+        EstadoContenedor ultimoEstado = historial.get(historial.size() - 1);
 
         if (dto.getFecha() != null) {
             ultimoEstado.setFecha(dto.getFecha());
         }
 
+        // Dispara la evaluación interna de saturación (> 80 %)
         alertaService.evaluarSaturacion();
 
         return ultimoEstado;
     }
 
     public EstadoContenedor consultarEstado(Long id, LocalDate fecha) {
-
         if (fecha == null) {
-            throw new IllegalArgumentException(
-                    "La fecha no puede ser nula");
+            throw new IllegalArgumentException("La fecha no puede ser nula");
         }
 
         Contenedor contenedor = contenedores.get(id);
-
         if (contenedor == null) {
-            throw new NoSuchElementException(
-                    "No existe el contenedor con id: " + id);
+            throw new NoSuchElementException("No existe el contenedor con id: " + id);
         }
 
         EstadoContenedor resultado = null;
-
         for (EstadoContenedor estado : contenedor.getEstados()) {
-
             if (estado.getFecha().toLocalDate().equals(fecha)) {
-
-                if (resultado == null
-                        || estado.getFecha().isAfter(resultado.getFecha())) {
-
+                if (resultado == null || estado.getFecha().isAfter(resultado.getFecha())) {
                     resultado = estado;
                 }
             }
         }
-
         return resultado;
     }
 
-
-public List<EstadoContenedor> consultarUso(
-        Long id,
-        LocalDate ini,
-        LocalDate fin) {
-
-    // Comprobamos que el rango de fechas sea válido
-    // únicamente cuando se han proporcionado ambas fechas.
-    if (ini != null && fin != null && ini.isAfter(fin)) {
-        throw new IllegalArgumentException(
-                "La fecha de inicio no puede ser posterior a la fecha de fin");
-    }
-
-    // Buscamos el contenedor
-    Contenedor contenedor = contenedores.get(id);
-
-    if (contenedor == null) {
-        throw new NoSuchElementException(
-                "No existe el contenedor con id: " + id);
-    }
-
-    List<EstadoContenedor> resultado = new ArrayList<>();
-
-    // Recorremos todos los estados del contenedor
-    for (EstadoContenedor estado : contenedor.getEstados()) {
-
-        LocalDate fechaEstado = estado.getFecha().toLocalDate();
-
-        // Comprobamos la fecha de inicio si existe
-        boolean cumpleInicio = (ini == null)
-                || !fechaEstado.isBefore(ini);
-
-        // Comprobamos la fecha de fin si existe
-        boolean cumpleFin = (fin == null)
-                || !fechaEstado.isAfter(fin);
-
-        // Añadimos el estado si cumple ambos límites
-        if (cumpleInicio && cumpleFin) {
-            resultado.add(estado);
-        }
-    }
-
-    return resultado;
-}
-
-
-
-public List<EstadoContenedor> consultarZona(
-        String codigoPostal,
-        LocalDate fecha) {
-
-    List<EstadoContenedor> resultado = new ArrayList<>();
-
-    // Si no se indica fecha, utilizamos la fecha actual.
-    LocalDate fechaConsulta = (fecha != null)
-            ? fecha
-            : LocalDate.now();
-
-    // Si se indica código postal, buscamos únicamente esa zona.
-    if (codigoPostal != null && !codigoPostal.isBlank()) {
-
-        Zona zona = zonas.get(codigoPostal);
-
-        // Si el código postal no existe, devolvemos una lista vacía.
-        if (zona == null) {
-            return resultado;
+    public List<EstadoContenedor> consultarUso(Long id, LocalDate ini, LocalDate fin) {
+        if (ini != null && fin != null && ini.isAfter(fin)) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha de fin");
         }
 
-        // Consultamos el estado de cada contenedor de esa zona.
-        for (Contenedor contenedor : zona.getContenedores()) {
+        Contenedor contenedor = contenedores.get(id);
+        if (contenedor == null) {
+            throw new NoSuchElementException("No existe el contenedor con id: " + id);
+        }
 
-            EstadoContenedor estado =
-                    consultarEstado(contenedor.getId(), fechaConsulta);
+        List<EstadoContenedor> resultado = new ArrayList<>();
+        for (EstadoContenedor estado : contenedor.getEstados()) {
+            LocalDate fechaEstado = estado.getFecha().toLocalDate();
+            boolean cumpleInicio = (ini == null) || !fechaEstado.isBefore(ini);
+            boolean cumpleFin = (fin == null) || !fechaEstado.isAfter(fin);
 
-            if (estado != null) {
+            if (cumpleInicio && cumpleFin) {
                 resultado.add(estado);
             }
         }
+        return resultado;
+    }
 
-    } else {
+    public List<EstadoContenedor> consultarZona(String codigoPostal, LocalDate fecha) {
+        List<EstadoContenedor> resultado = new ArrayList<>();
+        LocalDate fechaConsulta = (fecha != null) ? fecha : LocalDate.now();
 
-        // Si no se indica código postal, recorremos todas las zonas.
-        for (Zona zona : zonas.values()) {
-
+        if (codigoPostal != null && !codigoPostal.isBlank()) {
+            Zona zona = zonas.get(codigoPostal);
+            if (zona == null) {
+                return resultado;
+            }
             for (Contenedor contenedor : zona.getContenedores()) {
-
-                EstadoContenedor estado =
-                        consultarEstado(contenedor.getId(), fechaConsulta);
-
+                EstadoContenedor estado = consultarEstado(contenedor.getId(), fechaConsulta);
                 if (estado != null) {
                     resultado.add(estado);
                 }
             }
+        } else {
+            for (Zona zona : zonas.values()) {
+                for (Contenedor contenedor : zona.getContenedores()) {
+                    EstadoContenedor estado = consultarEstado(contenedor.getId(), fechaConsulta);
+                    if (estado != null) {
+                        resultado.add(estado);
+                    }
+                }
+            }
         }
+        return resultado;
     }
-
-    return resultado;
-}
-
 }
