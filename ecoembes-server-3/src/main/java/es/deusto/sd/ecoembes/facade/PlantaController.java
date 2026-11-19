@@ -7,32 +7,88 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import es.deusto.sd.ecoembes.dto.AsignacionDTO;
 import es.deusto.sd.ecoembes.dto.CapacidadDTO;
+import es.deusto.sd.ecoembes.service.AsignacionService;
 import es.deusto.sd.ecoembes.service.AuthService;
 import es.deusto.sd.ecoembes.service.PlantaService;
 
 @RestController
-@RequestMapping("/plantas")
 public class PlantaController {
 
     private final PlantaService plantaService;
+    private final AsignacionService asignacionService;
     private final AuthService authService;
 
     public PlantaController(PlantaService plantaService,
-                            AuthService authService) {
+                              AsignacionService asignacionService,
+                              AuthService authService) {
         this.plantaService = plantaService;
+        this.asignacionService = asignacionService;
         this.authService = authService;
     }
 
-    @GetMapping("/capacidades")
+    // ---------- PLANTAS ----------
+
+    @GetMapping("/plantas/capacidades")
     public ResponseEntity<List<CapacidadDTO>> consultarCapacidades(
             @RequestParam("token") Long token,
             @RequestParam("fecha") LocalDate fecha) {
         try {
             authService.validarToken(token);
-
             return ResponseEntity.ok(
                     plantaService.consultarCapacidadesDTO(fecha));
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // ---------- ASIGNACIONES ----------
+
+    @PostMapping("/asignaciones")
+    public ResponseEntity<AsignacionDTO> crearAsignacion(
+            @RequestParam("token") Long token,
+            @RequestBody AsignacionDTO dto) {
+        try {
+            authService.validarToken(token);
+            AsignacionDTO creada = asignacionService.crear(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(creada);
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/asignaciones/{id}")
+    public ResponseEntity<AsignacionDTO> consultarAsignacion(
+            @RequestParam("token") Long token,
+            @PathVariable("id") Long id) {
+        try {
+            authService.validarToken(token);
+            return ResponseEntity.ok(asignacionService.consultar(id));
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/asignaciones")
+    public ResponseEntity<List<AsignacionDTO>> consultarAsignaciones(
+            @RequestParam("token") Long token,
+            @RequestParam("idPlanta") Long idPlanta,
+            @RequestParam("ini") LocalDate ini,
+            @RequestParam("fin") LocalDate fin) {
+        try {
+            authService.validarToken(token);
+            return ResponseEntity.ok(
+                    asignacionService.consultarAsignaciones(idPlanta, ini, fin));
 
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
