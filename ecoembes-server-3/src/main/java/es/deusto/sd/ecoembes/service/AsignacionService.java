@@ -1,11 +1,12 @@
-
 package es.deusto.sd.ecoembes.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,7 @@ import es.deusto.sd.ecoembes.entity.PlantaReciclaje;
 @Service
 public class AsignacionService {
 
-	// Almacén en memoria del servidor (Prototipo 1)
+    // Almacén en memoria del servidor (Prototipo 1)
     private final Map<Long, Asignacion> asignaciones =
             new ConcurrentHashMap<>();
 
@@ -30,6 +31,8 @@ public class AsignacionService {
 
     private final Map<Long, Personal> empleados =
             new ConcurrentHashMap<>();
+
+    private final AtomicLong siguienteIdAsignacion = new AtomicLong(1L);
 
     // Crear una asignación
     public AsignacionDTO crear(AsignacionDTO dto) {
@@ -66,7 +69,7 @@ public class AsignacionService {
             seleccionados.add(contenedor);
         }
 
-        long id = System.currentTimeMillis();
+        Long id = siguienteIdAsignacion.getAndIncrement();
 
         Asignacion asignacion = new Asignacion(
                 id,
@@ -105,7 +108,7 @@ public class AsignacionService {
 
         for (Asignacion asignacion : asignaciones.values()) {
 
-            if (asignacion.getPlanta().getId() == idPlanta
+            if (Objects.equals(asignacion.getPlanta().getId(), idPlanta)
                     && !asignacion.getFecha().isBefore(ini)
                     && !asignacion.getFecha().isAfter(fin)) {
 
@@ -148,4 +151,3 @@ public class AsignacionService {
         empleados.put(personal.getId(), personal);
     }
 }
-
