@@ -60,7 +60,7 @@ class AsignacionServiceTest {
 
     /** Crea una asignación válida y espera 2 ms: el id se genera con currentTimeMillis(). */
     private AsignacionDTO crearAsignacion(Long idPlanta, LocalDate fecha) throws InterruptedException {
-        AsignacionDTO resultado = service.crear(crearDTO(idPlanta, 1L, Arrays.asList(1L), fecha));
+        AsignacionDTO resultado = service.crearAsignacion(crearDTO(idPlanta, 1L, Arrays.asList(1L), fecha));
         Thread.sleep(2);
         return resultado;
     }
@@ -71,7 +71,7 @@ class AsignacionServiceTest {
     void crear_datosValidos_devuelveDTOConLosDatosEsperados() {
         AsignacionDTO dto = crearDTO(1L, 1L, Arrays.asList(1L, 2L), FECHA);
 
-        AsignacionDTO resultado = service.crear(dto);
+        AsignacionDTO resultado = service.crearAsignacion(dto);
 
         assertNotNull(resultado);
         assertNotNull(resultado.getId());
@@ -85,14 +85,14 @@ class AsignacionServiceTest {
     void crear_mantieneElOrdenDeLosContenedores() {
         AsignacionDTO dto = crearDTO(1L, 1L, Arrays.asList(3L, 1L, 2L), FECHA);
 
-        AsignacionDTO resultado = service.crear(dto);
+        AsignacionDTO resultado = service.crearAsignacion(dto);
 
         assertEquals(Arrays.asList(3L, 1L, 2L), resultado.getIdsContenedores());
     }
 
     @Test
     void crear_laAsignacionQuedaGuardadaYSePuedeConsultar() {
-        AsignacionDTO creada = service.crear(crearDTO(1L, 1L, Arrays.asList(1L), FECHA));
+        AsignacionDTO creada = service.crearAsignacion(crearDTO(1L, 1L, Arrays.asList(1L), FECHA));
 
         AsignacionDTO consultada = service.consultar(creada.getId());
 
@@ -105,7 +105,7 @@ class AsignacionServiceTest {
     @Test
     void crear_dtoNulo_lanzaExcepcion() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.crear(null));
+                () -> service.crearAsignacion(null));
 
         assertEquals("Datos de asignación incompletos", ex.getMessage());
     }
@@ -114,21 +114,21 @@ class AsignacionServiceTest {
     void crear_sinIdPlanta_lanzaExcepcion() {
         AsignacionDTO dto = crearDTO(null, 1L, Arrays.asList(1L), FECHA);
 
-        assertThrows(IllegalArgumentException.class, () -> service.crear(dto));
+        assertThrows(IllegalArgumentException.class, () -> service.crearAsignacion(dto));
     }
 
     @Test
     void crear_sinIdPersonal_lanzaExcepcion() {
         AsignacionDTO dto = crearDTO(1L, null, Arrays.asList(1L), FECHA);
 
-        assertThrows(IllegalArgumentException.class, () -> service.crear(dto));
+        assertThrows(IllegalArgumentException.class, () -> service.crearAsignacion(dto));
     }
 
     @Test
     void crear_listaDeContenedoresNula_lanzaExcepcion() {
         AsignacionDTO dto = crearDTO(1L, 1L, null, FECHA);
 
-        assertThrows(IllegalArgumentException.class, () -> service.crear(dto));
+        assertThrows(IllegalArgumentException.class, () -> service.crearAsignacion(dto));
     }
 
     @Test
@@ -136,7 +136,7 @@ class AsignacionServiceTest {
         AsignacionDTO dto = crearDTO(1L, 1L, Arrays.asList(), FECHA);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.crear(dto));
+                () -> service.crearAsignacion(dto));
 
         assertEquals("Datos de asignación incompletos", ex.getMessage());
     }
@@ -146,7 +146,7 @@ class AsignacionServiceTest {
         AsignacionDTO dto = crearDTO(99L, 1L, Arrays.asList(1L), FECHA);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.crear(dto));
+                () -> service.crearAsignacion(dto));
 
         assertEquals("Planta o empleado no encontrado", ex.getMessage());
     }
@@ -156,7 +156,7 @@ class AsignacionServiceTest {
         AsignacionDTO dto = crearDTO(1L, 99L, Arrays.asList(1L), FECHA);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.crear(dto));
+                () -> service.crearAsignacion(dto));
 
         assertEquals("Planta o empleado no encontrado", ex.getMessage());
     }
@@ -166,7 +166,7 @@ class AsignacionServiceTest {
         AsignacionDTO dto = crearDTO(1L, 1L, Arrays.asList(1L, 99L), FECHA);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.crear(dto));
+                () -> service.crearAsignacion(dto));
 
         assertEquals("Contenedor no encontrado: 99", ex.getMessage());
     }
@@ -175,7 +175,7 @@ class AsignacionServiceTest {
     void crear_siFalla_noGuardaNingunaAsignacion() {
         AsignacionDTO dto = crearDTO(1L, 1L, Arrays.asList(1L, 99L), FECHA);
 
-        assertThrows(IllegalArgumentException.class, () -> service.crear(dto));
+        assertThrows(IllegalArgumentException.class, () -> service.crearAsignacion(dto));
 
         assertTrue(service.consultarAsignaciones(1L, FECHA.minusYears(1), FECHA.plusYears(1)).isEmpty());
     }

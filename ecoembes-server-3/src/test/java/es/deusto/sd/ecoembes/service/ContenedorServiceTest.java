@@ -31,7 +31,7 @@ class ContenedorServiceTest {
 
         fecha = LocalDateTime.of(2026, 11, 14, 10, 0);
 
-        contenedor = service.crear(
+        contenedor = service.crearContenedor(
                 new ContenedorDTO(null, "Calle Mayor 10", "48001", 100));
     }
 
@@ -49,12 +49,12 @@ class ContenedorServiceTest {
     @Test
     void ignoresManualIdInDtoAndGeneratesSequentialId() {
         // Aunque el DTO traiga un ID manual (12L), el servicio genera el siguiente secuencial (2L)
-        Contenedor segundo = service.crear(
+        Contenedor segundo = service.crearContenedor(
                 new ContenedorDTO(12L, "Calle Nueva 20", "48002", 200));
 
         assertEquals(2L, segundo.getId());
 
-        Contenedor tercero = service.crear(
+        Contenedor tercero = service.crearContenedor(
                 new ContenedorDTO(1L, "Calle Tercera 30", "48003", 150));
 
         assertEquals(3L, tercero.getId());
@@ -65,18 +65,18 @@ class ContenedorServiceTest {
     @Test
     void rejectsInvalidContainerData() {
         assertThrows(IllegalArgumentException.class,
-                () -> service.crear(null));
+                () -> service.crearContenedor(null));
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.crear(
+                () -> service.crearContenedor(
                         new ContenedorDTO(null, "", "48001", 100)));
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.crear(
+                () -> service.crearContenedor(
                         new ContenedorDTO(null, "Calle", "48001", 0)));
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.crear(
+                () -> service.crearContenedor(
                         new ContenedorDTO(null, "Calle", "", 100)));
     }
 
