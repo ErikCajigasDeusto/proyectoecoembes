@@ -1,14 +1,12 @@
-# 🏗️ Auctions Server — Version 1
-
-[![CI](https://github.com/rcarball/auctions-server-1/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/rcarball/auctions-server-1/actions/workflows/ci.yml)
+# 🏗️ Ecoembes Server — Version 2
 
 ## English
 
 ### Overview
 
-Auctions Server V1 is the foundational backend of the *Auctions Service* teaching case study, a simplified distributed auction system for third-year Computer Engineering students. It manages auctions, bids, users and categories through a Spring Boot REST API.
+Ecoembes Server V2 is the foundational backend of the *Ecoembes Service* teaching case study, a simplified distributed garbage distribution system for third-year Computer Engineering class pryect. It manages garbage bins, garbage disposal, users and garbage plant capacity through a Spring Boot REST API.
 
-The version is intentionally educational rather than production-oriented. It illustrates the Façade, Application Service, Data Transfer Object and State Management patterns.
+The version is for class assingment. It illustrates the Façade, Application Service, Data Transfer Object and State Management patterns.
 
 ### REST API
 
@@ -16,10 +14,17 @@ The version is intentionally educational rather than production-oriented. It ill
 |:--|:--|:--|
 | POST | `/auth/login` | Log in and obtain a token |
 | POST | `/auth/logout` | Log out using a token |
-| GET | `/auctions/categories` | Retrieve categories |
-| GET | `/auctions/categories/{categoryName}/articles` | Retrieve a category's articles |
-| GET | `/auctions/articles/{articleId}/details` | Retrieve article details |
-| POST | `/auctions/articles/{articleId}/bid` | Place a bid (requires login) |
+| POST | `/contenedores` | Create a garbage container (requires login) |
+| PUT | `/contenedores/{id}/estado` | Updates a container's filling volume automaticaly |
+| GET | `/contenedores/{id}/uso` | Retrieve a container's usage data (requires login) |
+| GET | `/contenedores/{id}/estado` | Retrieve a conatiner's filling volume (requires login) |
+| GET | `/contenedores/zona` | Retrieve a list of containers from a specific zone (requires login) |
+| GET | `/planta/capacidades` | Retrieve all of garbage plants capacities (requires login) |
+| POST | `/asignaciones` | Create an allocation between containers and a garbage plant (requires login) |
+| GET | `/asignaciones/{id}` | Retrieve an allocation |
+| GET | `/asignaciones` | Retrieve all allocations |
+| GET | `/alertas/saturacion` | Retrieve the saturation of plants (requires login) |
+| POST | `/alertas/saturacion/evaluar` | Scans the filling volume of all containers and creates an alert based of that (requires login) |
 
 - Swagger UI: [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html)
 - OpenAPI document: [http://localhost:8081/v3/api-docs](http://localhost:8081/v3/api-docs)
@@ -56,7 +61,7 @@ chmod +x gradlew  # only if needed
 
 The server starts at [http://localhost:8081](http://localhost:8081). The Gradle wrapper is included, so a local Gradle installation is not required. The first run downloads its pinned Gradle version and dependencies.
 
-In Eclipse or Spring Tool Suite on any supported operating system, import the folder as an existing Gradle project and run `AuctionsApplication`.
+In Eclipse or Spring Tool Suite on any supported operating system, import the folder as an existing Gradle project and run `EcoembesApplication`.
 
 ### Tests and continuous integration
 
@@ -64,7 +69,7 @@ In Eclipse or Spring Tool Suite on any supported operating system, import the fo
 ./gradlew test
 ```
 
-The suite includes unit tests for auctions, authentication and currency conversion, plus `MockMvc` tests for REST routes, parameters, JSON credentials and response codes. Integration tests also start the complete application on a random local port and verify OpenAPI, Swagger UI and the login/bid/logout workflow with the initialized data. A concurrency regression test checks that bids waiting for an article lock are rejected if the auction closes.
+The suite includes unit tests for garbage management and authentication, plus `MockMvc` tests for REST routes, parameters, JSON credentials and response codes. Integration tests also start the complete application on a random local port and verify OpenAPI and Swagger UI.
 
 The [CI workflow](.github/workflows/ci.yml) runs the test suite for pushes to `master` and pull requests. The `master` branch requires the `test` check to pass before changes are integrated.
 
@@ -83,9 +88,9 @@ Stable versions checked on **8 October 2026**:
 
 Java 21 remains the classroom requirement. Spring Boot manages the remaining library versions as a compatible set; they are not individually pinned to their newest upstream release. See [Spring Boot dependency management](https://docs.spring.io/spring-boot/gradle-plugin/managing-dependencies.html).
 
-Pass the returned token as a **plain text body** when bidding or logging out. Article IDs run from **0 to 11**, and demo auctions end on 31 December of the year the server starts.
+Pass the returned token as a **plain text body** when managing garbage or logging out.
 
-V1 stores all data and sessions in memory: restarting resets them. EUR/USD/GBP rates are fixed teaching values. The SHA-1 login scheme, non-expiring sessions and `double` monetary amounts are educational simplifications, not a production authentication or monetary model. The clients default to V2 at port 8082; configure their server URL to `http://localhost:8081` when using V1.
+V2 stores all data and sessions in memory: restarting resets them. The clients default to V2 at port 8082; configure their server URL to `http://localhost:8081` when using V1.
 
 ### License and authorship
 
@@ -105,20 +110,27 @@ All automated tests and the continuous integration workflow were entirely genera
 
 ### Descripción general
 
-Auctions Server V1 es el backend inicial del caso docente *Auctions Service*, un sistema de subastas distribuido y simplificado para alumnado de tercero de Ingeniería Informática. Gestiona subastas, pujas, usuarios y categorías mediante una API REST de Spring Boot.
+Ecoembes Server V1 es el backend inicial del caso docente *Ecoembes Service*, un sistema de gestión de residuos distribuido y simplificado para el proyecto de diseño del software de tercero de Ingeniería Informática. Gestiona basura, plantas, usuarios y categorías mediante una API REST de Spring Boot.
 
-La versión tiene una finalidad deliberadamente educativa, no productiva. Ilustra los patrones Façade, Application Service, Data Transfer Object y State Management.
+La versión es para la entrega de clase. Ilustra los patrones Façade, Application Service, Data Transfer Object y State Management.
 
 ### API REST
 
 | Método | Endpoint | Descripción |
 |:--|:--|:--|
-| POST | `/auth/login` | Iniciar sesión y obtener un token |
-| POST | `/auth/logout` | Cerrar sesión con un token |
-| GET | `/auctions/categories` | Consultar categorías |
-| GET | `/auctions/categories/{categoryName}/articles` | Consultar los artículos de una categoría |
-| GET | `/auctions/articles/{articleId}/details` | Consultar los detalles de un artículo |
-| POST | `/auctions/articles/{articleId}/bid` | Realizar una puja (requiere sesión) |
+| POST | `/auth/login` | Inicia sesión y obten un token |
+| POST | `/auth/logout` | Cierra sesión con el token |
+| POST | `/contenedores` | Crea un contenedor de basura (requiere sesión) |
+| PUT | `/contenedores/{id}/estado` | Actualiza automáticamente el estado de llenado del contenedor |
+| GET | `/contenedores/{id}/uso` | Recibe el nivel de uso del contenedor (requiere sesión) |
+| GET | `/contenedores/{id}/estado` | Recibe el estado de llenado del contenedor (requiere sesión) |
+| GET | `/contenedores/zona` | Recibe una lista de contenedores de una zona (requiere sesión) |
+| GET | `/planta/capacidades` | Recibe la capacidad de todas las plantas (requiere sesión) |
+| POST | `/asignaciones` | Crea una asignación entre contenedores y una planta de reciclaje (requiere sesión) |
+| GET | `/asignaciones/{id}` | Recibe una asignación |
+| GET | `/asignaciones` | Recibe todas las asignaciones |
+| GET | `/alertas/saturacion` | Recibe la saturación de las plantas (requiere sesión) |
+| POST | `/alertas/saturacion/evaluar` | Escanea el nivel de llenado de los contenedores y crea una alerta en base a eso (requiere sesión) |
 
 - Swagger UI: [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html)
 - Documento OpenAPI: [http://localhost:8081/v3/api-docs](http://localhost:8081/v3/api-docs)
@@ -163,7 +175,7 @@ En Eclipse o Spring Tool Suite, en cualquiera de los sistemas operativos admitid
 ./gradlew test
 ```
 
-La batería incluye pruebas unitarias de subastas, autenticación y conversión de moneda, además de pruebas `MockMvc` de rutas REST, parámetros, credenciales JSON y códigos de respuesta. Las pruebas de integración arrancan también la aplicación completa en un puerto local aleatorio y verifican OpenAPI, Swagger UI y el flujo de login/puja/logout con los datos iniciales. Una prueba de regresión de concurrencia comprueba que se rechazan las pujas que esperan el bloqueo de un artículo si la subasta cierra durante la espera.
+La batería incluye pruebas gestión de basura y autenticación, además de pruebas `MockMvc` de rutas REST, parámetros, credenciales JSON y códigos de respuesta. Las pruebas de integración arrancan también la aplicación completa en un puerto local aleatorio y verifican OpenAPIy Swagger UI.
 
 El [flujo de CI](.github/workflows/ci.yml) ejecuta las pruebas en cada cambio a `master` y en cada pull request. La rama `master` requiere que la comprobación `test` sea correcta antes de integrar cambios.
 
@@ -182,9 +194,9 @@ Versiones estables comprobadas el **8 de octubre de 2026**:
 
 Se mantiene Java 21 como requisito docente. Spring Boot gestiona las versiones del resto de librerías como un conjunto compatible; no se fija individualmente cada una a su última versión publicada. Véase la [gestión de dependencias de Spring Boot](https://docs.spring.io/spring-boot/gradle-plugin/managing-dependencies.html).
 
-Envía el token recibido como **cuerpo de texto plano** para pujar o cerrar sesión. Los identificadores de artículos van del **0 al 11** y las subastas de ejemplo cierran el 31 de diciembre del año de arranque.
+Envía el token recibido como **cuerpo de texto plano** para gestionar la basura o cerrar sesión.
 
-V1 conserva los datos y las sesiones en memoria: se reinician al arrancar de nuevo. Los tipos EUR/USD/GBP son valores docentes fijos. El login con SHA-1, las sesiones sin caducidad y los importes con `double` son simplificaciones educativas, no un modelo de autenticación o de dinero para producción. Los clientes apuntan por defecto a V2 en el puerto 8082; configura su URL como `http://localhost:8081` para utilizarlos con V1.
+V2 conserva los datos y las sesiones en memoria: se reinician al arrancar de nuevo. Los clientes apuntan por defecto a V2 en el puerto 8082; configura su URL como `http://localhost:8081` para utilizarlos con V1.
 
 ### Licencia y autoría
 
