@@ -1,13 +1,18 @@
 package es.deusto.sd.ecoembes.dto;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import es.deusto.sd.ecoembes.entity.NivelLlenado;
 
 public class EstadoDTO {
 
-    private LocalDateTime fecha;
-    private int numeroEnvases;
-    private NivelLlenado nivel;
+	@Schema(example = "2026-11-20T10:00:00")
+	private LocalDateTime fecha;
+
+	@Schema(example = "95")
+	private int numeroEnvases;
+
+	@Schema(example = "ROJO")
+	private NivelLlenado nivel;
 
     public EstadoDTO() {
     }

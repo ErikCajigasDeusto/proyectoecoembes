@@ -1,12 +1,17 @@
 package es.deusto.sd.ecoembes.dto;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 
 public class CapacidadDTO {
 
-    private Long idPlanta;
-    private LocalDate fecha;
-    private double toneladasDisponibles;
+	@Schema(example = "1")
+	private Long idPlanta;
+
+	@Schema(example = "2026-11-20")
+	private LocalDate fecha;
+
+	@Schema(example = "125.0")
+	private double toneladasDisponibles;
 
     public CapacidadDTO() {
     }

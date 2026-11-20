@@ -1,20 +1,31 @@
 package es.deusto.sd.ecoembes.dto;
 
 import java.time.LocalDate;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 public class AsignacionDTO {
+	@Schema(description = "ID generado por el servidor")
+	private Long id;
 
-    private Long id;
-    private Long idPlanta;
-    private List<Long> idsContenedores;
-    private LocalDate fecha;
-    private int totalEnvases;
-    private Long idPersonal;
+	@Schema(example = "1")
+	private Long idPlanta;
 
-    public AsignacionDTO() {
-    }
+	@Schema(example = "[1, 2, 3]")
+	private List<Long> idsContenedores;
 
+	@Schema(example = "2026-11-20")
+	private LocalDate fecha;
+
+	@Schema(example = "0")
+	private int totalEnvases;
+
+	@Schema(example = "1")
+	private Long idPersonal;
+
+	public AsignacionDTO(){
+		
+	}
     public AsignacionDTO(Long id, Long idPlanta,
                          List<Long> idsContenedores,
                          LocalDate fecha, int totalEnvases,
