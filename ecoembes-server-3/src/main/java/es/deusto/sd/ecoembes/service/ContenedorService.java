@@ -104,23 +104,31 @@ public class ContenedorService {
     }
 
     public EstadoContenedor consultarEstado(Long id, LocalDate fecha) {
-        if (fecha == null) {
-            throw new IllegalArgumentException("La fecha no puede ser nula");
-        }
-
-        Contenedor contenedor = contenedores.get(id);
+    	
+    	Contenedor contenedor = contenedores.get(id);
         if (contenedor == null) {
-            throw new NoSuchElementException("No existe el contenedor con id: " + id);
+            throw new NoSuchElementException(
+                    "No existe el contenedor con id: " + id);
         }
 
         EstadoContenedor resultado = null;
+
         for (EstadoContenedor estado : contenedor.getEstados()) {
-            if (estado.getFecha().toLocalDate().equals(fecha)) {
-                if (resultado == null || estado.getFecha().isAfter(resultado.getFecha())) {
-                    resultado = estado;
-                }
+
+            // Si se proporciona fecha, solo considerar estados de ese día
+            if (fecha != null
+                    && !estado.getFecha().toLocalDate().equals(fecha)) {
+                continue;
+            }
+
+            // Obtener el estado más reciente que cumpla el filtro
+            if (resultado == null
+                    || estado.getFecha().isAfter(resultado.getFecha())) {
+
+                resultado = estado;
             }
         }
+
         return resultado;
     }
 

@@ -112,7 +112,7 @@ public class ContenedorController {
     public ResponseEntity<EstadoDTO> consultarEstado(
             @RequestParam("token") Long token,
             @PathVariable("id") Long id,
-            @RequestParam("fecha")
+            @RequestParam(value="fecha", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
         try {
             authService.validarToken(token);
