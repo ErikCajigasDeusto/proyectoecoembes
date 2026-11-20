@@ -35,7 +35,7 @@ public class AsignacionService {
     private final AtomicLong siguienteIdAsignacion = new AtomicLong(1L);
 
     // Crear una asignación
-    public AsignacionDTO crear(AsignacionDTO dto) {
+    public AsignacionDTO crearAsignacion(AsignacionDTO dto) {
 
         if (dto == null || dto.getIdPlanta() == null ||
                 dto.getIdPersonal() == null ||

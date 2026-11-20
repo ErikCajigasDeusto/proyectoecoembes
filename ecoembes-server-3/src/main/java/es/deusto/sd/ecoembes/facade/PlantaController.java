@@ -54,7 +54,7 @@ public class PlantaController {
             @RequestBody AsignacionDTO dto) {
         try {
             authService.validarToken(token);
-            AsignacionDTO creada = asignacionService.crear(dto);
+            AsignacionDTO creada = asignacionService.crearAsignacion(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(creada);
 
         } catch (SecurityException e) {

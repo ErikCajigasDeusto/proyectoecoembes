@@ -32,13 +32,13 @@ public class ContenedorController {
 
     // 1. CREAR UN CONTENEDOR
     @PostMapping
-    public ResponseEntity<ContenedorDTO> crear(
+    public ResponseEntity<ContenedorDTO> crearContenedor(
             @RequestParam("token") Long token,
             @RequestBody ContenedorDTO dto) {
         try {
             authService.validarToken(token);
 
-            Contenedor contenedor = contenedorService.crear(dto);
+            Contenedor contenedor = contenedorService.crearContenedor(dto);
 
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(convertirContenedorADTO(contenedor));

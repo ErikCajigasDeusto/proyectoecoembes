@@ -120,28 +120,28 @@ public class DataInitializer {
             // 3. CONTENEDORES
             // --------------------------------------------------
 
-            var contenedor1 = contenedorService.crear(
+            var contenedor1 = contenedorService.crearContenedor(
                     new ContenedorDTO(
                             null,"Calle Gran Vía 10","48001",100
                     )
             );
 
-            var contenedor2 = contenedorService.crear(
+            var contenedor2 = contenedorService.crearContenedor(
                     new ContenedorDTO(null,"Calle Diputación 15","48001",120
                     )
             );
 
-            var contenedor3 = contenedorService.crear(
+            var contenedor3 = contenedorService.crearContenedor(
                     new ContenedorDTO(null,"Calle Ercilla 20","48009",150
                     )
             );
 
-            var contenedor4 = contenedorService.crear(
+            var contenedor4 = contenedorService.crearContenedor(
                     new ContenedorDTO(null,"Calle Dato 8","01001",100
                     )
             );
 
-            var contenedor5 = contenedorService.crear(
+            var contenedor5 = contenedorService.crearContenedor(
                     new ContenedorDTO(null,"Avenida Gasteiz 25","01005",130
                     )
             );
@@ -239,7 +239,7 @@ public class DataInitializer {
                     hoy,0,ana.getId()
             );
 
-            asignacionService.crear(asignacionBilbao);
+            asignacionService.crearAsignacion(asignacionBilbao);
 
             // Asignación de contenedores a la planta de Vitoria
             AsignacionDTO asignacionVitoria = new AsignacionDTO(
@@ -249,7 +249,7 @@ public class DataInitializer {
                     ),hoy,0,ofelia.getId()
             );
 
-            asignacionService.crear(asignacionVitoria);
+            asignacionService.crearAsignacion(asignacionVitoria);
 
             logger.info("Asignaciones inicializadas.");
             logger.info("Datos de prueba de Ecoembes cargados correctamente.");

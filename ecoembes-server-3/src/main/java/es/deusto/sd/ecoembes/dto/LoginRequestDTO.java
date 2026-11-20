@@ -1,8 +1,13 @@
 package es.deusto.sd.ecoembes.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public class LoginRequestDTO {
 
+    @Schema(description = "Correo electrónico del empleado", example = "ana@ecoembes.com")
     private String email;
+
+    @Schema(description = "Contraseña de acceso", example = "Ana1234!")
     private String password;
 
     public LoginRequestDTO() {

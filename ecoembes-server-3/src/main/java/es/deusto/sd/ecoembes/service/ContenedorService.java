@@ -30,7 +30,7 @@ public class ContenedorService {
         this.alertaService = alertaService;
     }
 
-    public Contenedor crear(ContenedorDTO dto) {
+    public Contenedor crearContenedor(ContenedorDTO dto) {
         if (dto == null
                 || dto.getCodigoPostal() == null
                 || dto.getCodigoPostal().isBlank()

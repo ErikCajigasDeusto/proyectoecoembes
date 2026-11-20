@@ -1,10 +1,19 @@
 package es.deusto.sd.ecoembes.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public class ContenedorDTO {
 
+    @Schema(description = "Identificador único del contenedor (opcional al crear)", example = "6")
     private Long id;
+
+    @Schema(description = "Ubicación o dirección del contenedor", example = "Calle Ledesma 5")
     private String direccion;
+
+    @Schema(description = "Código postal de la zona", example = "48001")
     private String codigoPostal;
+
+    @Schema(description = "Capacidad máxima en número de envases", example = "120")
     private int capacidadInicial;
 
     public ContenedorDTO() {
