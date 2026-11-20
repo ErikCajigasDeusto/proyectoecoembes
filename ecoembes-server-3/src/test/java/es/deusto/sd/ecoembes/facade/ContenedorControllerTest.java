@@ -29,7 +29,7 @@ class ContenedorServiceTest {
 
         fecha = LocalDateTime.of(2026, 11, 14, 10, 0);
 
-        contenedor = service.crear(
+        contenedor = service.crearContenedor(
                 new ContenedorDTO(null, "Calle Mayor 10", "48001", 100));
     }
 
@@ -47,18 +47,18 @@ class ContenedorServiceTest {
     void rejectsInvalidContainerData() {
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.crear(null));
+                () -> service.crearContenedor(null));
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.crear(
+                () -> service.crearContenedor(
                         new ContenedorDTO(null, "", "48001", 100)));
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.crear(
+                () -> service.crearContenedor(
                         new ContenedorDTO(null, "Calle", "48001", 0)));
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.crear(
+                () -> service.crearContenedor(
                         new ContenedorDTO(null, "Calle", "", 100)));
     }
 
@@ -71,7 +71,7 @@ class ContenedorServiceTest {
 
         // Intentar crear otro contenedor con ID 1 debe producir un error.
         assertThrows(IllegalArgumentException.class,
-                () -> service.crear(dto));
+                () -> service.crearContenedor(dto));
 
         // El contenedor original debe conservar sus datos.
         assertEquals(1L, contenedor.getId());
@@ -83,13 +83,13 @@ class ContenedorServiceTest {
     void generatesNextIdAfterManualId() {
 
         // Creamos un contenedor con ID manual 12.
-        Contenedor manual = service.crear(
+        Contenedor manual = service.crearContenedor(
                 new ContenedorDTO(12L, "Calle Manual", "48003", 100));
 
         assertEquals(12L, manual.getId());
 
         // El siguiente contenedor automático debe tener ID 13.
-        Contenedor automatico = service.crear(
+        Contenedor automatico = service.crearContenedor(
                 new ContenedorDTO(null, "Calle Automatica", "48004", 100));
 
         assertEquals(13L, automatico.getId());

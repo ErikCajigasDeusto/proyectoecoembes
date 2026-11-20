@@ -116,14 +116,14 @@ class PlantaControllerTest {
     void crearAsignacion_tokenValido_devuelve201ConLaAsignacionCreada() {
         AsignacionDTO entrada = mock(AsignacionDTO.class);
         AsignacionDTO creada = mock(AsignacionDTO.class);
-        when(asignacionService.crear(entrada)).thenReturn(creada);
+        when(asignacionService.crearAsignacion(entrada)).thenReturn(creada);
 
         ResponseEntity<AsignacionDTO> respuesta = controller.crearAsignacion(TOKEN, entrada);
 
         assertEquals(HttpStatus.CREATED, respuesta.getStatusCode());
         assertSame(creada, respuesta.getBody());
         verify(authService).validarToken(TOKEN);
-        verify(asignacionService).crear(entrada);
+        verify(asignacionService).crearAsignacion(entrada);
     }
 
     @Test
@@ -150,7 +150,7 @@ class PlantaControllerTest {
     @Test
     void crearAsignacion_datosInvalidos_devuelve400SinCuerpo() {
         AsignacionDTO entrada = mock(AsignacionDTO.class);
-        when(asignacionService.crear(entrada))
+        when(asignacionService.crearAsignacion(entrada))
                 .thenThrow(new IllegalArgumentException("Datos inválidos"));
 
         ResponseEntity<AsignacionDTO> respuesta = controller.crearAsignacion(TOKEN, entrada);
@@ -162,7 +162,7 @@ class PlantaControllerTest {
     @Test
     void crearAsignacion_otraExcepcion_sePropaga() {
         AsignacionDTO entrada = mock(AsignacionDTO.class);
-        when(asignacionService.crear(entrada)).thenThrow(new RuntimeException("fallo"));
+        when(asignacionService.crearAsignacion(entrada)).thenThrow(new RuntimeException("fallo"));
 
         assertThrows(RuntimeException.class,
                 () -> controller.crearAsignacion(TOKEN, entrada));
