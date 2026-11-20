@@ -2,8 +2,4 @@
 // Reviewed and updated with assistance from Claude Opus 4.8 (July 2026)
 // and ChatGPT-6.1 Sol (October 2026).
 
-plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
-}
-
 rootProject.name = 'ecoembes-server-3'
