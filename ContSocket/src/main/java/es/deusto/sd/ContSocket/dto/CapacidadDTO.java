@@ -1,4 +1,4 @@
-package es.deusto.sd.ecoembes.dto;
+package es.deusto.sd.ContSocket.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 

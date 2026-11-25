@@ -6,9 +6,10 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.1.2'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'application'
 }
 
-group = 'es.deusto.sd.ecoembes'
+group = 'es.deusto.sd.contsocket'
 version = '2.0'
 
 // Latest stable maintenance release in the Hibernate 7.4 series used by Boot 4.1.
@@ -22,6 +23,9 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+}
+application {
+    mainClass = 'es.deusto.sd.ContSocket.ContSocketServer'
 }
 
 dependencies {
@@ -49,4 +53,9 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-Xlint:all'
 }

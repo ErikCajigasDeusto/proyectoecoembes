@@ -1,5 +1,5 @@
 
-package es.deusto.sd.ecoembes;
+package es.deusto.sd.ContSocket;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class EcoembesApplicationTest {
+class ContSocketApplicationTest {
 
     @Value("${local.server.port}")
     private int port;
