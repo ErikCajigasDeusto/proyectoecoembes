@@ -84,5 +84,22 @@ public class PlantaService {
 
         return resultado;
     }
+    
+    
+    public Long buscarIdPorNombre(String nombre) {
+
+        if (nombre == null || nombre.isBlank()) {
+            return null;
+        }
+
+        for (PlantaReciclaje planta : plantas.values()) {
+
+            if (nombre.equalsIgnoreCase(planta.getNombre())) {
+                return planta.getId();
+            }
+        }
+
+        return null;
+    }
 
 }
