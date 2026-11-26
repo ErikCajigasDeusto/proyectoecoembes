@@ -1,15 +1,18 @@
 package es.deusto.sd.ecoembes.service;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
 
+import es.deusto.sd.ecoembes.client.EcoembesClient;
 import es.deusto.sd.ecoembes.dto.AsignacionDTO;
 import es.deusto.sd.ecoembes.entity.Asignacion;
 import es.deusto.sd.ecoembes.entity.Contenedor;
@@ -34,11 +37,19 @@ public class AsignacionService {
 
     private final AtomicLong siguienteIdAsignacion = new AtomicLong(1L);
 
+    // Cliente TCP hacia Servidor-ContSocket (Prototipo 2)
+    private final EcoembesClient contSocketClient;
+
+    public AsignacionService(EcoembesClient contSocketClient) {
+        this.contSocketClient = contSocketClient;
+    }
+
     // Crear una asignación
     public AsignacionDTO crearAsignacion(AsignacionDTO dto) {
 
         if (dto == null || dto.getIdPlanta() == null ||
                 dto.getIdPersonal() == null ||
+                dto.getFecha() == null ||
                 dto.getIdsContenedores() == null ||
                 dto.getIdsContenedores().isEmpty()) {
             throw new IllegalArgumentException(
@@ -81,9 +92,44 @@ public class AsignacionService {
         asignacion.setContenedores(seleccionados);
         asignacion.calcularTotalEnvases();
 
+        // Notificar a ContSocket: comprueba capacidad y descuenta de forma atómica.
+        // Si no hay capacidad (o la fecha no existe) la asignación no se crea.
+        try {
+            boolean aceptada = contSocketClient.notificar(
+                    dto.getFecha(),
+                    seleccionados.size(),
+                    asignacion.getTotalEnvases()
+            );
+
+            if (!aceptada) {
+                throw new IllegalArgumentException(
+                        "ContSocket: capacidad insuficiente o fecha no válida"
+                );
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                    "No se pudo contactar con ContSocket: " + e.getMessage(), e
+            );
+        }
+
         asignaciones.put(id, asignacion);
 
         return convertirADTO(asignacion);
+    }
+
+    // Consultar la capacidad disponible (toneladas) de ContSocket en una fecha
+    public double consultarCapacidad(LocalDate fecha) {
+        try {
+            Optional<Double> capacidad = contSocketClient.getCapacidad(fecha);
+
+            return capacidad.orElseThrow(() -> new IllegalArgumentException(
+                    "No hay capacidad registrada para la fecha " + fecha
+            ));
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                    "No se pudo contactar con ContSocket: " + e.getMessage(), e
+            );
+        }
     }
 
     // Consultar una asignación por su identificador

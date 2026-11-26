@@ -1,4 +1,4 @@
-package es.deusto.sd.ContSocket;
+package es.deusto.sd.ContSocket.server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -17,7 +17,7 @@ import es.deusto.sd.ContSocket.service.CapacidadService;
  */
 public class ContSocketServer {
 
-    public static final int DEFAULT_PORT = 9090;
+    public static final int DEFAULT_PORT = 8083;
     private static final int DIAS_PRECARGA = 10;
     private static final double CAPACIDAD_INICIAL_TN = 25.0;
 

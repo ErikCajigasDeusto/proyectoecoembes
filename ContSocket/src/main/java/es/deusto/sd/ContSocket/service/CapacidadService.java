@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
-import es.deusto.sd.ContSocket.ContSocketServer;
+import es.deusto.sd.ContSocket.server.ContSocketServer;
 
 /**
  * Atiende a un cliente. Comandos soportados:

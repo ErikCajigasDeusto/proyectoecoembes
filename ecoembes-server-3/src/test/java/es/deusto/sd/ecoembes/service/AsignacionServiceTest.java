@@ -1,16 +1,23 @@
 package es.deusto.sd.ecoembes.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import es.deusto.sd.ecoembes.client.EcoembesClient;
 import es.deusto.sd.ecoembes.dto.AsignacionDTO;
 import es.deusto.sd.ecoembes.entity.Contenedor;
 import es.deusto.sd.ecoembes.entity.Personal;
@@ -21,10 +28,15 @@ class AsignacionServiceTest {
     private static final LocalDate FECHA = LocalDate.of(2026, 3, 15);
 
     private AsignacionService service;
+    private EcoembesClient contSocketClient;
 
     @BeforeEach
-    void setUp() {
-        service = new AsignacionService();
+    void setUp() throws IOException {
+        // Cliente de sockets simulado: por defecto ContSocket acepta las notificaciones
+        contSocketClient = mock(EcoembesClient.class);
+        when(contSocketClient.notificar(any(LocalDate.class), anyInt(), anyInt())).thenReturn(true);
+
+        service = new AsignacionService(contSocketClient);
 
         service.addPlanta(crearPlanta(1L));
         service.addPersonal(crearPersonal(1L));
@@ -100,6 +112,36 @@ class AsignacionServiceTest {
         assertEquals(creada.getIdPlanta(), consultada.getIdPlanta());
     }
 
+    // ---------- crear: integración con ContSocket ----------
+
+    @Test
+    void crear_notificaAContSocketConFechaYNumeroDeContenedores() throws IOException {
+        service.crearAsignacion(crearDTO(1L, 1L, Arrays.asList(1L, 2L), FECHA));
+
+        verify(contSocketClient).notificar(eq(FECHA), eq(2), anyInt());
+    }
+
+    @Test
+    void crear_contSocketRechazaLaNotificacion_lanzaExcepcionYNoGuarda() throws IOException {
+        when(contSocketClient.notificar(any(LocalDate.class), anyInt(), anyInt())).thenReturn(false);
+        AsignacionDTO dto = crearDTO(1L, 1L, Arrays.asList(1L), FECHA);
+
+        assertThrows(IllegalArgumentException.class, () -> service.crearAsignacion(dto));
+
+        assertTrue(service.consultarAsignaciones(1L, FECHA.minusYears(1), FECHA.plusYears(1)).isEmpty());
+    }
+
+    @Test
+    void crear_contSocketNoDisponible_lanzaIllegalStateYNoGuarda() throws IOException {
+        when(contSocketClient.notificar(any(LocalDate.class), anyInt(), anyInt()))
+                .thenThrow(new IOException("Connection refused"));
+        AsignacionDTO dto = crearDTO(1L, 1L, Arrays.asList(1L), FECHA);
+
+        assertThrows(IllegalStateException.class, () -> service.crearAsignacion(dto));
+
+        assertTrue(service.consultarAsignaciones(1L, FECHA.minusYears(1), FECHA.plusYears(1)).isEmpty());
+    }
+
     // ---------- crear: validaciones ----------
 
     @Test
@@ -120,6 +162,13 @@ class AsignacionServiceTest {
     @Test
     void crear_sinIdPersonal_lanzaExcepcion() {
         AsignacionDTO dto = crearDTO(1L, null, Arrays.asList(1L), FECHA);
+
+        assertThrows(IllegalArgumentException.class, () -> service.crearAsignacion(dto));
+    }
+
+    @Test
+    void crear_sinFecha_lanzaExcepcion() {
+        AsignacionDTO dto = crearDTO(1L, 1L, Arrays.asList(1L), null);
 
         assertThrows(IllegalArgumentException.class, () -> service.crearAsignacion(dto));
     }
@@ -178,6 +227,29 @@ class AsignacionServiceTest {
         assertThrows(IllegalArgumentException.class, () -> service.crearAsignacion(dto));
 
         assertTrue(service.consultarAsignaciones(1L, FECHA.minusYears(1), FECHA.plusYears(1)).isEmpty());
+    }
+
+    // ---------- consultarCapacidad ----------
+
+    @Test
+    void consultarCapacidad_fechaConRegistro_devuelveToneladas() throws IOException {
+        when(contSocketClient.getCapacidad(FECHA)).thenReturn(Optional.of(25.0));
+
+        assertEquals(25.0, service.consultarCapacidad(FECHA));
+    }
+
+    @Test
+    void consultarCapacidad_fechaSinRegistro_lanzaExcepcion() throws IOException {
+        when(contSocketClient.getCapacidad(FECHA)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> service.consultarCapacidad(FECHA));
+    }
+
+    @Test
+    void consultarCapacidad_contSocketNoDisponible_lanzaIllegalState() throws IOException {
+        when(contSocketClient.getCapacidad(FECHA)).thenThrow(new IOException("Connection refused"));
+
+        assertThrows(IllegalStateException.class, () -> service.consultarCapacidad(FECHA));
     }
 
     // ---------- consultar ----------
@@ -259,19 +331,4 @@ class AsignacionServiceTest {
 
         assertEquals(2, resultado.size());
     }
-
-    /**
-     * Este test detecta un bug del servicio: usa "getId() == idPlanta".
-     * Si getId() devuelve Long (objeto), == compara referencias y solo funciona
-     * para valores entre -128 y 127 (caché de Long). Con 1000L fallaría.
-     */
-//    @Test
-//    void consultarAsignaciones_plantaConIdGrande_seEncuentra() throws InterruptedException {
-//        service.addPlanta(crearPlanta(1000L));
-//        crearAsignacion(1000L, FECHA);
-//
-//        List<AsignacionDTO> resultado = service.consultarAsignaciones(1000L, FECHA.minusDays(1), FECHA.plusDays(1));
-
-//        assertEquals(1, resultado.size());
-//    }
 }
