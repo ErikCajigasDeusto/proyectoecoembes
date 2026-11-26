@@ -26,7 +26,7 @@ public class CapacidadService implements Runnable {
     private static final String ERR_COMANDO = "ERROR#Comando desconocido";
 
     private final Socket socket;
-
+    
     public CapacidadService(Socket socket) {
         this.socket = socket;
     }

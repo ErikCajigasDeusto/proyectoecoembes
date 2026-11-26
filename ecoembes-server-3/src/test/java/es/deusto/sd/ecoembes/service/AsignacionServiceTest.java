@@ -36,7 +36,7 @@ class AsignacionServiceTest {
         contSocketClient = mock(EcoembesClient.class);
         when(contSocketClient.notificar(any(LocalDate.class), anyInt(), anyInt())).thenReturn(true);
 
-        service = new AsignacionService(contSocketClient);
+        service = new AsignacionService(Optional.of(contSocketClient));
 
         service.addPlanta(crearPlanta(1L));
         service.addPersonal(crearPersonal(1L));
@@ -330,5 +330,32 @@ class AsignacionServiceTest {
         List<AsignacionDTO> resultado = service.consultarAsignaciones(1L, FECHA, FECHA.plusDays(7));
 
         assertEquals(2, resultado.size());
+    }
+    
+    // ---------- ContSocket desactivado ----------
+    private AsignacionService crearServicioSinContSocket() {
+        AsignacionService s = new AsignacionService(Optional.empty());
+        s.addPlanta(crearPlanta(1L));
+        s.addPersonal(crearPersonal(1L));
+        s.addContenedor(crearContenedor(1L));
+        return s;
+    }
+
+    @Test
+    void crear_contSocketDesactivado_creaLaAsignacionSinNotificar() {
+        AsignacionService sinSocket = crearServicioSinContSocket();
+
+        AsignacionDTO resultado = sinSocket.crearAsignacion(crearDTO(1L, 1L, Arrays.asList(1L), FECHA));
+
+        assertNotNull(resultado);
+        assertNotNull(resultado.getId());
+        assertEquals(FECHA, resultado.getFecha());
+    }
+
+    @Test
+    void consultarCapacidad_contSocketDesactivado_lanzaIllegalState() {
+        AsignacionService sinSocket = crearServicioSinContSocket();
+
+        assertThrows(IllegalStateException.class, () -> sinSocket.consultarCapacidad(FECHA));
     }
 }

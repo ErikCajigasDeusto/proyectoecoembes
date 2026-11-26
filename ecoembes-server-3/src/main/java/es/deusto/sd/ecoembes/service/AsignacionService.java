@@ -38,9 +38,9 @@ public class AsignacionService {
     private final AtomicLong siguienteIdAsignacion = new AtomicLong(1L);
 
     // Cliente TCP hacia Servidor-ContSocket (Prototipo 2)
-    private final EcoembesClient contSocketClient;
+    private final Optional<EcoembesClient> contSocketClient;
 
-    public AsignacionService(EcoembesClient contSocketClient) {
+    public AsignacionService(Optional<EcoembesClient> contSocketClient) {
         this.contSocketClient = contSocketClient;
     }
 
@@ -94,22 +94,24 @@ public class AsignacionService {
 
         // Notificar a ContSocket: comprueba capacidad y descuenta de forma atómica.
         // Si no hay capacidad (o la fecha no existe) la asignación no se crea.
-        try {
-            boolean aceptada = contSocketClient.notificar(
-                    dto.getFecha(),
-                    seleccionados.size(),
-                    asignacion.getTotalEnvases()
-            );
+        if (contSocketClient.isPresent()) {
+            try {
+                boolean aceptada = contSocketClient.get().notificar(
+                        dto.getFecha(),
+                        seleccionados.size(),
+                        asignacion.getTotalEnvases()
+                );
 
-            if (!aceptada) {
-                throw new IllegalArgumentException(
-                        "ContSocket: capacidad insuficiente o fecha no válida"
+                if (!aceptada) {
+                    throw new IllegalArgumentException(
+                            "ContSocket: capacidad insuficiente o fecha no válida"
+                    );
+                }
+            } catch (IOException e) {
+                throw new IllegalStateException(
+                        "No se pudo contactar con ContSocket: " + e.getMessage(), e
                 );
             }
-        } catch (IOException e) {
-            throw new IllegalStateException(
-                    "No se pudo contactar con ContSocket: " + e.getMessage(), e
-            );
         }
 
         asignaciones.put(id, asignacion);
@@ -119,10 +121,10 @@ public class AsignacionService {
 
     // Consultar la capacidad disponible (toneladas) de ContSocket en una fecha
     public double consultarCapacidad(LocalDate fecha) {
+        EcoembesClient client = contSocketClient.orElseThrow(() ->
+                new IllegalStateException("ContSocket está desactivado (contsocket.enabled=false)"));
         try {
-            Optional<Double> capacidad = contSocketClient.getCapacidad(fecha);
-
-            return capacidad.orElseThrow(() -> new IllegalArgumentException(
+            return client.getCapacidad(fecha).orElseThrow(() -> new IllegalArgumentException(
                     "No hay capacidad registrada para la fecha " + fecha
             ));
         } catch (IOException e) {

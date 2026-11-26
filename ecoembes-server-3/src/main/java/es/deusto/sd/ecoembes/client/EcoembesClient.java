@@ -9,13 +9,15 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 /**
  * Cliente TCP de Servidor-ContSocket (protocolo: writeUTF/readUTF con delimitador '#').
  * Abre una conexion por peticion: envia un String y espera un String de respuesta.
  *
  */
+
 @Component
+@ConditionalOnProperty(name = "contsocket.enabled", havingValue = "true", matchIfMissing = true)
 public class EcoembesClient {
 
     private static final String DELIMITER = "#";

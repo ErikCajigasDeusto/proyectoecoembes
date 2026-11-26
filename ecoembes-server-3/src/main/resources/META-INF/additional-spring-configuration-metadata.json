@@ -17,6 +17,12 @@
       "type": "java.lang.String",
       "description": "URL base del servidor PlasSB.",
       "defaultValue": "http://localhost:8082"
-    }
+    },
+	{
+	  "name": "contsocket.enabled",
+	  "type": "java.lang.Boolean",
+	  "description": "Activa el uso de ContSocketServer para consultar y descontar capacidad.",
+	  "defaultValue": true
+	}
   ]
 }

@@ -4,16 +4,17 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDate;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import es.deusto.sd.ContSocket.dao.CapacidadDAO;
+import es.deusto.sd.ContSocket.dao.CapacidadDAOJpa;
+import es.deusto.sd.ContSocket.entity.Capacidad;
 import es.deusto.sd.ContSocket.service.CapacidadService;
 
 /**
  * Servidor-ContSocket: servidor externo de capacidad de la planta (Sockets TCP).
  * Protocolo: DataInputStream.readUTF / DataOutputStream.writeUTF con delimitador '#'.
+ * La persistencia se delega en un CapacidadDAO.
  */
 public class ContSocketServer {
 
@@ -21,20 +22,16 @@ public class ContSocketServer {
     private static final int DIAS_PRECARGA = 10;
     private static final double CAPACIDAD_INICIAL_TN = 25.0;
 
-    /** Capacidad disponible (toneladas) por fecha. */
-    private static final Map<LocalDate, Double> CAPACIDADES = new ConcurrentHashMap<>();
     private static final AtomicInteger NUM_CLIENTES = new AtomicInteger(0);
 
-    static {
-        LocalDate hoy = LocalDate.now();
-        for (int i = 0; i <= DIAS_PRECARGA; i++) {
-            CAPACIDADES.put(hoy.plusDays(i), CAPACIDAD_INICIAL_TN);
-        }
-    }
+    /** DAO compartido por todos los hilos (el EntityManagerFactory es thread-safe). */
+    private static final CapacidadDAO DAO = new CapacidadDAOJpa();
 
     /** Devuelve la capacidad disponible para la fecha, o null si no existe. */
     public static Double getCapacidad(LocalDate fecha) {
-        return CAPACIDADES.get(fecha);
+        return DAO.findByFecha(fecha)
+                .map(Capacidad::getCapacidadDisponible)
+                .orElse(null);
     }
 
     /**
@@ -42,16 +39,19 @@ public class ContSocketServer {
      * @return true si la fecha existe y había capacidad suficiente.
      */
     public static boolean descontar(LocalDate fecha, double toneladas) {
-        AtomicBoolean ok = new AtomicBoolean(false);
-        CAPACIDADES.computeIfPresent(fecha, (f, actual) -> {
-            if (actual >= toneladas) {
-                ok.set(true);
-                // Redondeo a 3 decimales para evitar ruido de coma flotante
-                return Math.round((actual - toneladas) * 1000.0) / 1000.0;
+        return DAO.descontar(fecha, toneladas);
+    }
+
+    /** Solo crea las fechas que aún no existen, así se conserva lo persistido. */
+    private static void precargar() {
+        LocalDate hoy = LocalDate.now();
+        for (int i = 0; i <= DIAS_PRECARGA; i++) {
+            LocalDate fecha = hoy.plusDays(i);
+            if (DAO.findByFecha(fecha).isEmpty()) {
+                DAO.save(new Capacidad(CapacidadDAOJpa.PLANTA, fecha,
+                        CAPACIDAD_INICIAL_TN, CAPACIDAD_INICIAL_TN));
             }
-            return actual;
-        });
-        return ok.get();
+        }
     }
 
     public static void main(String[] args) {
@@ -65,10 +65,12 @@ public class ContSocketServer {
             }
         }
 
+        precargar();
+        Runtime.getRuntime().addShutdownHook(new Thread(DAO::close));
+
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println(" - ContSocketServer: escuchando en el puerto " + serverSocket.getLocalPort());
-            System.out.println(" - ContSocketServer: capacidades precargadas: "
-                    + new java.util.TreeMap<>(CAPACIDADES));
+            System.out.println(" - ContSocketServer: capacidad de hoy: " + getCapacidad(LocalDate.now()));
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
