@@ -75,6 +75,7 @@ public class PlantaService {
                 if (fecha.equals(capacidad.getFecha())) {
                     resultado.add(new CapacidadDTO(
                             planta.getId(),
+                            planta.getNombre(),
                             capacidad.getFecha(),
                             capacidad.getToneladasDisponibles()
                     ));

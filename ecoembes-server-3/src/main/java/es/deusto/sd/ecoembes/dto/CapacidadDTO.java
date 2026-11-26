@@ -1,24 +1,34 @@
+
 package es.deusto.sd.ecoembes.dto;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 
 public class CapacidadDTO {
 
-	@Schema(example = "1")
-	private Long idPlanta;
+    @Schema(example = "1")
+    private Long idPlanta;
 
-	@Schema(example = "2026-11-20")
-	private LocalDate fecha;
+    @Schema(example = "Planta de reciclaje Bilbao")
+    private String nombrePlanta;
 
-	@Schema(example = "125.0")
-	private double toneladasDisponibles;
+    @Schema(example = "2026-11-20")
+    private LocalDate fecha;
+
+    @Schema(example = "125.0")
+    private double toneladasDisponibles;
 
     public CapacidadDTO() {
     }
 
-    public CapacidadDTO(Long idPlanta, LocalDate fecha,
-                        double toneladasDisponibles) {
+    public CapacidadDTO(
+            Long idPlanta,
+            String nombrePlanta,
+            LocalDate fecha,
+            double toneladasDisponibles) {
+
         this.idPlanta = idPlanta;
+        this.nombrePlanta = nombrePlanta;
         this.fecha = fecha;
         this.toneladasDisponibles = toneladasDisponibles;
     }
@@ -29,6 +39,14 @@ public class CapacidadDTO {
 
     public void setIdPlanta(Long idPlanta) {
         this.idPlanta = idPlanta;
+    }
+
+    public String getNombrePlanta() {
+        return nombrePlanta;
+    }
+
+    public void setNombrePlanta(String nombrePlanta) {
+        this.nombrePlanta = nombrePlanta;
     }
 
     public LocalDate getFecha() {

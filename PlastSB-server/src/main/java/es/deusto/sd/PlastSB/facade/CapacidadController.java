@@ -1,5 +1,5 @@
-package es.deusto.sd.PlastSB.facade;
 
+package es.deusto.sd.PlastSB.facade;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,21 +23,31 @@ public class CapacidadController {
         this.service = service;
     }
 
-    // Consultar capacidad de una fecha concreta
-    @GetMapping("/{fecha}")
+    // Consultar capacidad de una fecha o la última capacidad disponible
+    @GetMapping
     public ResponseEntity<Capacidad> consultar(
-            @PathVariable("fecha")
+            @RequestParam(value = "fecha", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate fecha) {
 
         try {
+
+            // Si se introduce una fecha, consultar esa fecha
+            if (fecha != null) {
+                return ResponseEntity.ok(
+                        service.consultarCapacidad(fecha));
+            }
+
+            // Si no se introduce fecha, consultar el último registro
             return ResponseEntity.ok(
-                    service.consultarCapacidad(fecha));
+                    service.consultarUltimaCapacidad());
 
         } catch (NoSuchElementException e) {
+
             return ResponseEntity.notFound().build();
 
         } catch (IllegalArgumentException e) {
+
             return ResponseEntity.badRequest().build();
         }
     }
@@ -45,7 +55,6 @@ public class CapacidadController {
     // Consultar capacidades entre dos fechas opcionales
     @GetMapping("/rango")
     public ResponseEntity<List<Capacidad>> consultarRango(
-
             @RequestParam(value = "desde", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate desde,
@@ -64,7 +73,7 @@ public class CapacidadController {
     }
 
     // Consultar todas las capacidades
-    @GetMapping
+    @GetMapping("/todas")
     public ResponseEntity<List<Capacidad>> consultarTodas() {
         return ResponseEntity.ok(
                 service.consultarTodas());

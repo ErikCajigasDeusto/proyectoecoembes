@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import es.deusto.sd.PlastSB.entity.Capacidad;
 import es.deusto.sd.PlastSB.repository.CapacidadRepository;
@@ -32,6 +33,14 @@ public class CapacidadService {
                         new NoSuchElementException(
                                 "No existe capacidad para la fecha: "
                                         + fecha));
+    }
+    
+    
+    // Consultar la última capacidad registrada
+    public Capacidad consultarUltimaCapacidad() {
+        return repository.findFirstByOrderByIdDesc()
+                .orElseThrow(() -> new NoSuchElementException(
+                        "No existen registros de capacidad"));
     }
 
     // Consultar capacidades entre dos fechas opcionales
@@ -88,5 +97,53 @@ public class CapacidadService {
     // Consultar todas las capacidades
     public List<Capacidad> consultarTodas() {
         return repository.findAll();
+    }
+    
+    
+    @Transactional
+    public Capacidad procesarNotificacion(
+            LocalDate fecha,
+            int numContenedores) {
+
+        // 1. Validar los datos recibidos
+        if (fecha == null) {
+            throw new IllegalArgumentException(
+                    "La fecha es obligatoria");
+        }
+
+        if (numContenedores <= 0) {
+            throw new IllegalArgumentException(
+                    "El número de contenedores debe ser positivo");
+        }
+
+        // 2. Buscar el último registro existente
+        Capacidad ultimaCapacidad = repository
+                .findFirstByOrderByIdDesc()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No existen registros de capacidad"));
+
+        // 3. Comprobar que hay capacidad suficiente
+        if (numContenedores >
+                ultimaCapacidad.getCapacidadDisponible()) {
+
+            throw new IllegalArgumentException(
+                    "La planta no dispone de capacidad suficiente");
+        }
+
+        // 4. Restar el número de contenedores
+        double nuevaCapacidadDisponible =
+                ultimaCapacidad.getCapacidadDisponible()
+                        - numContenedores;
+
+        // 5. Crear un nuevo registro sin modificar el anterior
+        Capacidad nuevaCapacidad = new Capacidad(
+                ultimaCapacidad.getNombrePlanta(),
+                fecha,
+                ultimaCapacidad.getCapacidadTotal(),
+                nuevaCapacidadDisponible
+        );
+
+        // 6. Guardar el nuevo registro en H2
+        return repository.save(nuevaCapacidad);
     }
 }

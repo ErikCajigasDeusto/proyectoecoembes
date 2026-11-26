@@ -45,16 +45,21 @@ class PlantaControllerTest {
 
     @Test
     void consultarCapacidades_tokenValido_devuelve200ConLaLista() {
+
         List<CapacidadDTO> capacidades = Arrays.asList(
-                new CapacidadDTO(1L, FECHA, 100.0),
-                new CapacidadDTO(2L, FECHA, 200.0));
+                new CapacidadDTO(1L, "Planta Bilbao", FECHA, 100.0),
+                new CapacidadDTO(2L, "Planta Vitoria", FECHA, 200.0)
+        );
+
         when(plantaService.consultarCapacidadesDTO(FECHA)).thenReturn(capacidades);
 
-        ResponseEntity<List<CapacidadDTO>> respuesta = controller.consultarCapacidades(TOKEN, FECHA);
+        ResponseEntity<List<CapacidadDTO>> respuesta =
+                controller.consultarCapacidades(TOKEN, FECHA);
 
         assertEquals(HttpStatus.OK, respuesta.getStatusCode());
         assertSame(capacidades, respuesta.getBody());
         assertEquals(2, respuesta.getBody().size());
+
         verify(authService).validarToken(TOKEN);
         verify(plantaService).consultarCapacidadesDTO(FECHA);
     }
