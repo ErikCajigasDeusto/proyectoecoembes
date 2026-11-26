@@ -1,9 +1,22 @@
 {
   "properties": [
     {
+      "name": "contsocket.host",
+      "type": "java.lang.String",
+      "description": "Host del Servidor-ContSocket (Sockets TCP).",
+      "defaultValue": "localhost"
+    },
+    {
+      "name": "contsocket.port",
+      "type": "java.lang.Integer",
+      "description": "Puerto del Servidor-ContSocket (Sockets TCP).",
+      "defaultValue": 8083
+    },
+    {
       "name": "plassb.base-url",
       "type": "java.lang.String",
-      "description": "URL base del servicio PlasSB."
+      "description": "URL base del servidor PlasSB.",
+      "defaultValue": "http://localhost:8082"
     }
   ]
 }
